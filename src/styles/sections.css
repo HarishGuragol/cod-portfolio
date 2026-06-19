@@ -1260,3 +1260,620 @@
   }
 }
 
+/* ── Tactical Sonar Radar Scan (Campaign) ─────────────────── */
+.campaign-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+}
+
+.radar-console {
+  background: rgba(4, 8, 4, 0.95);
+  border: 1px solid var(--cod-primary);
+  height: 380px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 25px rgba(0, 255, 65, 0.05);
+}
+
+.radar-screen {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 65, 0.2);
+  position: relative;
+}
+
+.radar-sweep {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cod-primary), transparent);
+  transform-origin: left center;
+  animation: radar-sweep-anim 4s infinite linear;
+}
+
+@keyframes radar-sweep-anim {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.radar-ring-1 {
+  position: absolute;
+  top: 15%; left: 15%; width: 70%; height: 70%;
+  border-radius: 50%;
+  border: 1px dashed rgba(0, 255, 65, 0.15);
+}
+
+.radar-ring-2 {
+  position: absolute;
+  top: 30%; left: 30%; width: 40%; height: 40%;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.radar-crosshair-h {
+  position: absolute;
+  top: 50%; left: 0; width: 100%; height: 1px;
+  background: rgba(0, 255, 65, 0.15);
+}
+
+.radar-crosshair-v {
+  position: absolute;
+  top: 0; left: 50%; width: 1px; height: 100%;
+  background: rgba(0, 255, 65, 0.15);
+}
+
+.radar-dot-target {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--cod-secondary);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--cod-secondary);
+  animation: blink-red-dot 1.5s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.radar-dot-target.active {
+  background: var(--cod-primary);
+  box-shadow: 0 0 15px var(--cod-primary);
+  animation: blink-green-dot 1.5s infinite;
+}
+
+@keyframes blink-red-dot {
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+}
+
+@keyframes blink-green-dot {
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.4); }
+}
+
+.radar-dot-label {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  color: var(--cod-text-bright);
+  white-space: nowrap;
+  letter-spacing: 1px;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+
+.campaign-intel-panel {
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid var(--cod-border);
+  padding: var(--space-xl);
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+}
+
+.intel-header {
+  border-bottom: 1px solid var(--cod-border);
+  padding-bottom: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.intel-op {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-secondary);
+  letter-spacing: 2px;
+}
+
+.intel-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--cod-text-bright);
+  margin: 4px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.intel-body {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--cod-text);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.scan-progress-bar {
+  height: 3px;
+  background: var(--cod-surface);
+  position: relative;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.scan-progress-fill {
+  height: 100%;
+  background: var(--cod-primary);
+  box-shadow: 0 0 8px var(--cod-primary);
+}
+
+/* ── Multiplayer Operation Index & Simulators ──────────────── */
+.multiplayer-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+}
+
+.op-lobby-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.op-lobby-card {
+  padding: 14px;
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid var(--cod-border);
+  color: var(--cod-text);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.op-lobby-card:hover {
+  background: rgba(255, 106, 0, 0.05);
+  border-color: var(--cod-secondary);
+  transform: translateX(4px);
+}
+
+.op-lobby-card.selected {
+  background: rgba(255, 106, 0, 0.1);
+  border-color: var(--cod-secondary);
+  box-shadow: 0 0 15px rgba(255, 106, 0, 0.15);
+}
+
+.op-lobby-card .op-status {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  position: absolute;
+  top: 4px;
+  right: 6px;
+}
+
+.op-lobby-card.selected .op-name {
+  color: var(--cod-secondary);
+  text-shadow: 0 0 8px rgba(255, 106, 0, 0.3);
+}
+
+.sim-console-panel {
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid var(--cod-border);
+  padding: var(--space-xl);
+  min-height: 440px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+}
+
+.sim-header {
+  border-bottom: 1px solid var(--cod-border);
+  padding-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sim-title {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  color: var(--cod-text-bright);
+  letter-spacing: 2px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.sim-system-badge {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--cod-secondary);
+  border: 1px solid rgba(255, 106, 0, 0.4);
+  padding: 2px 6px;
+}
+
+.sim-interface {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--space-xl);
+}
+
+.sim-workarea {
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  background: rgba(2, 6, 2, 0.9);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  height: 320px;
+}
+
+.sim-grid-lines {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: 
+    linear-gradient(90deg, rgba(0, 255, 65, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0, 255, 65, 0.04) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Drone grid simulator */
+.drone-map-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 45px);
+  grid-template-rows: repeat(5, 45px);
+  gap: 4px;
+  position: relative;
+  z-index: 2;
+}
+
+.drone-grid-cell {
+  border: 1px solid rgba(0, 255, 65, 0.15);
+  background: rgba(0, 255, 65, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-family: var(--font-mono);
+  position: relative;
+}
+
+.drone-grid-cell.obstacle {
+  background: rgba(255, 0, 68, 0.15);
+  border-color: rgba(255, 0, 68, 0.3);
+}
+
+.drone-grid-cell.path {
+  background: rgba(0, 255, 65, 0.1);
+  border-color: var(--cod-primary);
+}
+
+.drone-icon-sim {
+  color: var(--cod-primary);
+  font-weight: bold;
+  animation: drone-tilt 0.5s infinite alternate;
+}
+
+@keyframes drone-tilt {
+  from { transform: rotate(-5deg) scale(1.1); }
+  to { transform: rotate(5deg) scale(1.1); }
+}
+
+/* Face Mesh Simulator */
+.face-mesh-view {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.face-mesh-grid {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 65, 0.3);
+  position: relative;
+}
+
+.face-mesh-grid::before {
+  content: '';
+  position: absolute;
+  top: 15%; left: 15%; width: 70%; height: 70%;
+  border: 1px dashed rgba(0, 255, 65, 0.25);
+  border-radius: 50%;
+}
+
+.scanning-laser-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--cod-primary);
+  box-shadow: 0 0 10px var(--cod-primary);
+  animation: laser-sweep 2.5s infinite ease-in-out;
+}
+
+@keyframes laser-sweep {
+  0%, 100% { top: 10%; }
+  50% { top: 90%; }
+}
+
+.focus-lock-box {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--cod-secondary);
+  box-shadow: 0 0 8px var(--cod-secondary);
+  transform: translate(-50%, -50%);
+  animation: lock-box-pulse 1s infinite alternate;
+}
+
+@keyframes lock-box-pulse {
+  from { transform: translate(-50%, -50%) scale(0.9); opacity: 0.7; }
+  to { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+/* Voice command decrypter */
+.voice-waveforms {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 60px;
+}
+
+.waveform-bar {
+  width: 4px;
+  background: var(--cod-primary);
+  border-radius: 2px;
+  animation: wave-bounce 0.8s infinite ease-in-out;
+  --height: 10px;
+  height: var(--height);
+}
+
+@keyframes wave-bounce {
+  0%, 100% { height: 10px; }
+  50% { height: var(--height); }
+}
+
+.sim-logs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 1px solid var(--cod-border);
+  padding-left: var(--space-xl);
+}
+
+.sim-spec-list {
+  font-size: 0.7rem;
+  color: var(--cod-text);
+  line-height: 1.6;
+  list-style: none;
+  padding: 0;
+}
+
+.sim-spec-list li {
+  margin-bottom: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.sim-spec-list li::before {
+  content: '▪';
+  color: var(--cod-secondary);
+  margin-top: 1px;
+}
+
+/* ── TROPHY CABINET & PROFILE MEDALS (Barracks) ────────────── */
+.barracks-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+}
+
+.trooper-profile-card {
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid var(--cod-border);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.trooper-profile-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--cod-warning);
+}
+
+.trooper-callingcard {
+  width: 100%;
+  height: 80px;
+  background: linear-gradient(135deg, #0f220f 0%, #050a05 100%);
+  border: 1px solid var(--cod-border);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.callingcard-glitch-grid {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at right, rgba(0, 255, 65, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.callingcard-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--cod-primary);
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(0,255,65,0.4);
+  font-weight: 900;
+}
+
+.trooper-stats-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trooper-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-bottom: 4px;
+}
+
+.trooper-stat-row .label { color: var(--cod-text-muted); }
+.trooper-stat-row .value { color: var(--cod-text-bright); font-weight: bold; }
+
+.trophy-cabinet {
+  background: rgba(10, 10, 10, 0.9);
+  border: 1px solid var(--cod-border);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.trophy-cabinet-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--cod-warning);
+  letter-spacing: 3px;
+  margin: 0;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--cod-border);
+  padding-bottom: 8px;
+}
+
+.medals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+}
+
+.medal-slot {
+  background: rgba(2, 4, 2, 0.85);
+  border: 1px solid var(--cod-border);
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.medal-slot:hover {
+  border-color: var(--cod-warning);
+  background: rgba(255, 170, 0, 0.04);
+  box-shadow: 0 0 15px rgba(255, 170, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.medal-icon-big {
+  font-size: 2.2rem;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.medal-slot:hover .medal-icon-big {
+  transform: scale(1.2) rotate(10deg);
+}
+
+.medal-slot-title {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  color: var(--cod-text);
+  margin-top: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.medal-slot:hover .medal-slot-title {
+  color: var(--cod-warning);
+}
+
+.medal-detail-overlay {
+  border-top: 1px solid rgba(255, 170, 0, 0.3);
+  padding-top: 14px;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  animation: slide-down 0.3s ease;
+}
+
+.medal-detail-title {
+  color: var(--cod-warning);
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.medal-detail-desc {
+  color: var(--cod-text);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .campaign-layout {
+    grid-template-columns: 1fr;
+  }
+  .multiplayer-layout {
+    grid-template-columns: 1fr;
+  }
+  .sim-interface {
+    grid-template-columns: 1fr;
+  }
+  .sim-logs-panel {
+    border-left: none;
+    border-top: 1px solid var(--cod-border);
+    padding-left: 0;
+    padding-top: var(--space-md);
+  }
+  .barracks-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+
