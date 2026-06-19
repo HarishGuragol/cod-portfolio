@@ -294,16 +294,7 @@ export default function App() {
         )}
       </AnimatePresence>
       
-      {/* FPS Weapon Overlay */}
-      {gameState === STATES.PLAYING_3D && (
-        <div className="fps-weapon-viewport">
-          <img
-            src="/images/weapon.png"
-            alt="FPS Weapon"
-            className={`fps-weapon-image ${isWalking ? 'walking-bob' : ''} ${isFiring ? 'firing-recoil' : ''}`}
-          />
-        </div>
-      )}
+      {/* 3D Walkthrough HUD is active. The 2D first-person gun is removed as we are in third-person view */}
 
       {/* Proximity Interaction Prompt */}
       {gameState === STATES.PLAYING_3D && activeTerminal && (

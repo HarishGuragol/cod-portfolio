@@ -1,7 +1,7 @@
 /* ============================================================
    BattlefieldScene — GTA 5 Los Santos & Special Ops Night Vision
    ============================================================ */
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect, forwardRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -241,6 +241,114 @@ function TankTrap({ position, nightVision }) {
   );
 }
 
+const Soldier = forwardRef(({ isWalking, nightVision }, ref) => {
+  const leftLeg = useRef();
+  const rightLeg = useRef();
+  const leftArm = useRef();
+  const rightArm = useRef();
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (isWalking) {
+      const swing = Math.sin(t * 12) * 0.45;
+      if (leftLeg.current) leftLeg.current.rotation.x = swing;
+      if (rightLeg.current) rightLeg.current.rotation.x = -swing;
+      if (leftArm.current) leftArm.current.rotation.x = -swing * 0.3;
+      if (rightArm.current) rightArm.current.rotation.x = swing * 0.3;
+    } else {
+      if (leftLeg.current) leftLeg.current.rotation.x = 0;
+      if (rightLeg.current) rightLeg.current.rotation.x = 0;
+      if (leftArm.current) leftArm.current.rotation.x = 0;
+      if (rightArm.current) rightArm.current.rotation.x = 0;
+    }
+  });
+
+  const bodyColor = nightVision ? "#081c08" : "#233327"; // tactical olive drab
+  const vestColor = nightVision ? "#092409" : "#1a241c"; // tactical vest
+  const helmetColor = nightVision ? "#0a2b0a" : "#121b14"; // helmet
+  const skinColor = nightVision ? "#00ff41" : "#d2a07a"; // skin
+  const wireframe = nightVision;
+
+  return (
+    <group ref={ref}>
+      {/* Torso / Vest */}
+      <mesh position={[0, 0.9, 0]}>
+        <boxGeometry args={[0.48, 0.85, 0.32]} />
+        <meshStandardMaterial color={vestColor} roughness={0.8} wireframe={wireframe} />
+      </mesh>
+      <mesh position={[0, 0.9, 0]}>
+        <boxGeometry args={[0.42, 0.9, 0.28]} />
+        <meshStandardMaterial color={bodyColor} roughness={0.8} wireframe={wireframe} />
+      </mesh>
+
+      {/* Head */}
+      <mesh position={[0, 1.48, 0]}>
+        <sphereGeometry args={[0.16, 12, 12]} />
+        <meshStandardMaterial color={skinColor} roughness={0.6} wireframe={wireframe} />
+      </mesh>
+
+      {/* Helmet */}
+      <mesh position={[0, 1.56, 0.01]} rotation={[0.08, 0, 0]}>
+        <sphereGeometry args={[0.18, 12, 12]} />
+        <meshStandardMaterial color={helmetColor} roughness={0.85} wireframe={wireframe} />
+      </mesh>
+
+      {/* Left Leg */}
+      <group ref={leftLeg} position={[-0.14, 0.5, 0]}>
+        <mesh position={[0, -0.4, 0]}>
+          <cylinderGeometry args={[0.06, 0.08, 0.8]} />
+          <meshStandardMaterial color={bodyColor} wireframe={wireframe} />
+        </mesh>
+      </group>
+
+      {/* Right Leg */}
+      <group ref={rightLeg} position={[0.14, 0.5, 0]}>
+        <mesh position={[0, -0.4, 0]}>
+          <cylinderGeometry args={[0.06, 0.08, 0.8]} />
+          <meshStandardMaterial color={bodyColor} wireframe={wireframe} />
+        </mesh>
+      </group>
+
+      {/* Left Arm */}
+      <group ref={leftArm} position={[-0.28, 1.15, 0]} rotation={[0, 0, 0.08]}>
+        <mesh position={[0, -0.32, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 0.75]} />
+          <meshStandardMaterial color={bodyColor} wireframe={wireframe} />
+        </mesh>
+      </group>
+
+      {/* Right Arm holding Rifle */}
+      <group ref={rightArm} position={[0.28, 1.15, 0]} rotation={[-0.45, 0, -0.08]}>
+        {/* Arm */}
+        <mesh position={[0, -0.32, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 0.75]} />
+          <meshStandardMaterial color={bodyColor} wireframe={wireframe} />
+        </mesh>
+        
+        {/* 3D Rifle model held in hand */}
+        <group position={[-0.1, -0.15, -0.26]} rotation={[1.1, 0, 0]}>
+          {/* Barrel */}
+          <mesh position={[0, 0.26, 0]}>
+            <boxGeometry args={[0.04, 0.6, 0.04]} />
+            <meshStandardMaterial color={nightVision ? "#051505" : "#111111"} />
+          </mesh>
+          {/* Stock */}
+          <mesh position={[0, -0.15, 0]}>
+            <boxGeometry args={[0.06, 0.28, 0.07]} />
+            <meshStandardMaterial color={nightVision ? "#051505" : "#222222"} />
+          </mesh>
+          {/* Scope */}
+          <mesh position={[0.03, 0.16, 0]}>
+            <boxGeometry args={[0.02, 0.15, 0.02]} />
+            <meshStandardMaterial color={nightVision ? "#051505" : "#111111"} />
+          </mesh>
+        </group>
+      </group>
+    </group>
+  );
+});
+Soldier.displayName = 'Soldier';
+
 function BunkerDoor({ door, isNear, nightVision }) {
   const panelColor = nightVision 
     ? (isNear ? "#ff6a00" : "#00ff41") 
@@ -292,6 +400,7 @@ function BunkerDoor({ door, isNear, nightVision }) {
 
 function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalking, nightVision }) {
   const keys = useRef({ w: false, a: false, s: false, d: false });
+  const soldierRef = useRef();
   
   // Starting position: on the road at Z = 20, looking forward
   const playerX = useRef(0);
@@ -304,6 +413,9 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
   // Drag to look state
   const isDragging = useRef(false);
   const previousMousePosition = useRef({ x: 0, y: 0 });
+
+  // Track if player is actively walking (to update animation state)
+  const isWalkingRef = useRef(false);
 
   useEffect(() => {
     // Keyboard listeners
@@ -424,6 +536,7 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
 
     // Update walking indicators
     const isWalking = dx !== 0 || dz !== 0;
+    isWalkingRef.current = isWalking;
     if (onUpdateWalking) {
       onUpdateWalking(isWalking);
     }
@@ -432,20 +545,26 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
     playerX.current = Math.max(-4.2, Math.min(4.2, playerX.current + dx));
     playerZ.current = Math.max(-35, Math.min(22, playerZ.current + dz)); // Z bounds: +22 to -35
 
-    // Eye level walking bob
+    // Eye level follow bob
     const bob = isWalking ? Math.sin(state.clock.elapsedTime * 12) * 0.05 : 0;
 
-    // Camera height (1.55m eye level)
-    state.camera.position.x = playerX.current;
-    state.camera.position.y = 1.55 + bob;
-    state.camera.position.z = playerZ.current;
+    // Position soldier character at player coordinates
+    if (soldierRef.current) {
+      soldierRef.current.position.set(playerX.current, -1.9, playerZ.current);
+      soldierRef.current.rotation.y = yaw.current;
+    }
 
-    // Face camera along yaw and pitch orientation
-    const lookX = playerX.current + Math.sin(yaw.current) * Math.cos(pitch.current);
-    const lookY = 1.55 + Math.sin(pitch.current);
-    const lookZ = playerZ.current - Math.cos(yaw.current) * Math.cos(pitch.current);
+    // Position camera 3.2m behind the soldier and looking over shoulder
+    const cameraDistance = 3.4;
+    state.camera.position.x = playerX.current - forwardX * cameraDistance;
+    state.camera.position.y = -0.1 + 1.9 + bob + pitch.current * 1.5; // follow height
+    state.camera.position.z = playerZ.current - forwardZ * cameraDistance;
 
-    state.camera.lookAt(lookX, lookY, lookZ);
+    // Look over shoulder in front of player
+    const lookTargetX = playerX.current + forwardX * 3;
+    const lookTargetY = -0.5 + pitch.current;
+    const lookTargetZ = playerZ.current + forwardZ * 3;
+    state.camera.lookAt(lookTargetX, lookTargetY, lookTargetZ);
 
     // --- Proximity & Looking Door Detection ---
     let nearestDoor = null;
@@ -475,7 +594,13 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
     }
   });
 
-  return null;
+  return (
+    <Soldier 
+      ref={soldierRef} 
+      isWalking={isWalkingRef.current} 
+      nightVision={nightVision}
+    />
+  );
 }
 
 export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalId, onNearTerminal, onUpdateWalking, nightVision }) {
