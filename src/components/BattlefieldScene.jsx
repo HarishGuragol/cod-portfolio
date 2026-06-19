@@ -90,6 +90,24 @@ function Embers({ count = 200, nightVision }) {
   );
 }
 
+function DistantExplosions({ nightVision }) {
+  const light1 = useRef();
+  const light2 = useRef();
+  
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (light1.current) light1.current.intensity = (Math.sin(t * 0.6) * 0.5 + 0.5) * (nightVision ? 1.5 : 0.8);
+    if (light2.current) light2.current.intensity = (Math.sin(t * 1.1 + 1.5) * 0.5 + 0.5) * (nightVision ? 1.2 : 0.6);
+  });
+  
+  return (
+    <>
+      <pointLight ref={light1} position={[-25, 4, -25]} color={nightVision ? "#00ff41" : "#ffe8aa"} distance={50} />
+      <pointLight ref={light2} position={[25, 3, -15]} color={nightVision ? "#ff6600" : "#aaccff"} distance={40} />
+    </>
+  );
+}
+
 function PalmTree({ position, nightVision }) {
   const trunkColor = nightVision ? "#041504" : "#4a321a";
   const leafColor = nightVision ? "#00ff41" : "#1e4620";
@@ -119,6 +137,106 @@ function PalmTree({ position, nightVision }) {
           );
         })}
       </group>
+    </group>
+  );
+}
+
+function SearchlightTower({ position, nightVision }) {
+  const cylinderRef = useRef();
+  
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    const angle = Math.sin(t * 0.6) * 0.6;
+    if (cylinderRef.current) {
+      cylinderRef.current.rotation.y = angle;
+    }
+  });
+  
+  const metalColor = nightVision ? "#081c08" : "#323632";
+  const beamColor = nightVision ? "#00ff41" : "#ffe8aa";
+  
+  return (
+    <group position={position}>
+      {/* Tower Structure Frame */}
+      <mesh position={[0, 2.5, 0]}>
+        <cylinderGeometry args={[0.15, 0.35, 5, 4, 1, true]} />
+        <meshStandardMaterial color={metalColor} wireframe />
+      </mesh>
+      
+      {/* Tower Platform */}
+      <mesh position={[0, 5, 0]}>
+        <boxGeometry args={[1.0, 0.1, 1.0]} />
+        <meshStandardMaterial color={metalColor} roughness={0.8} />
+      </mesh>
+      
+      {/* Rotating Searchlight Head */}
+      <group position={[0, 5.3, 0]} ref={cylinderRef}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.22, 0.22, 0.5, 8]} />
+          <meshStandardMaterial color={metalColor} roughness={0.7} />
+        </mesh>
+        
+        {/* Volumetric light beam cone */}
+        <mesh position={[0, 0, -3.2]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.06, 1.3, 6, 16, 1, true]} />
+          <meshBasicMaterial 
+            color={beamColor} 
+            transparent 
+            opacity={nightVision ? 0.08 : 0.14} 
+            side={THREE.DoubleSide} 
+          />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+function Cloud({ position, speed = 0.5 }) {
+  const ref = useRef();
+  
+  useFrame((state, delta) => {
+    if (ref.current) {
+      ref.current.position.x += speed * delta;
+      if (ref.current.position.x > 38) {
+        ref.current.position.x = -38;
+      }
+    }
+  });
+  
+  return (
+    <group ref={ref} position={position}>
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[2.0, 8, 8]} />
+        <meshStandardMaterial color="#ffffff" transparent opacity={0.25} roughness={0.9} flatShading />
+      </mesh>
+      <mesh position={[1.4, -0.2, 0.6]}>
+        <sphereGeometry args={[1.3, 8, 8]} />
+        <meshStandardMaterial color="#ffffff" transparent opacity={0.25} roughness={0.9} flatShading />
+      </mesh>
+      <mesh position={[-1.4, -0.2, -0.6]}>
+        <sphereGeometry args={[1.3, 8, 8]} />
+        <meshStandardMaterial color="#ffffff" transparent opacity={0.25} roughness={0.9} flatShading />
+      </mesh>
+    </group>
+  );
+}
+
+function TankTrap({ position, nightVision }) {
+  const color = nightVision ? "#041404" : "#2d2d2d";
+  return (
+    <group position={position}>
+      <mesh rotation={[0.7, 0.7, 0]}>
+        <boxGeometry args={[0.08, 0.08, 1.1]} />
+        <meshStandardMaterial color={color} roughness={0.9} wireframe={nightVision} />
+      </mesh>
+      <mesh rotation={[-0.7, 0.7, 0]}>
+        <boxGeometry args={[0.08, 0.08, 1.1]} />
+        <meshStandardMaterial color={color} roughness={0.9} wireframe={nightVision} />
+      </mesh>
+      <mesh rotation={[0, 0.7, 0.7]}>
+        <boxGeometry args={[0.08, 0.08, 1.1]} />
+        <meshStandardMaterial color={color} roughness={0.9} wireframe={nightVision} />
+      </mesh>
     </group>
   );
 }
@@ -368,8 +486,8 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
     if (nightVision) {
       root.style.background = '#020402';
     } else {
-      // Realistic blue California GTA 5 sky
-      root.style.background = 'linear-gradient(to bottom, #1a82e2 0%, #7ab2e8 50%, #b9d8f6 100%)';
+      // Clear CSS background to let 3D Sky Dome render fully
+      root.style.background = 'transparent';
     }
   }, [nightVision]);
 
@@ -392,14 +510,14 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
       zIndex: 0,
     }}>
       <Canvas
-        camera={{ position: [0, 2, 18], fov: 60, near: 0.1, far: 80 }}
+        camera={{ position: [0, 2, 18], fov: 60, near: 0.1, far: 95 }}
         gl={{ antialias: true, alpha: true }}
-        style={{ background: 'transparent' }}
+        style={{ background: nightVision ? '#020402' : 'transparent' }}
       >
         <ambientLight intensity={ambientIntensity} color={ambientColor} />
-        <directionalLight position={[10, 15, 10]} intensity={sunIntensity} color={sunColor} />
+        <directionalLight position={[12, 18, 10]} intensity={sunIntensity} color={sunColor} />
         {/* Soft fill light opposite to the sun to make shadows soft blue */}
-        {!nightVision && <directionalLight position={[-10, 8, -10]} intensity={0.3} color="#aaccff" />}
+        {!nightVision && <directionalLight position={[-10, 8, -10]} intensity={0.35} color="#aaccff" />}
         
         <fog attach="fog" args={[fogColor, fogNear, fogFar]} />
         
@@ -412,7 +530,45 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
         />
         
         <Embers count={200} nightVision={nightVision} />
-        <DistantExplosions />
+        <DistantExplosions nightVision={nightVision} />
+
+        {/* 🌎 3D SKY DOME (Eliminates flat 2D CSS background) */}
+        <mesh scale={[-1, 1, 1]} position={[0, 0, 0]}>
+          <sphereGeometry args={[75, 24, 12]} />
+          <meshBasicMaterial 
+            color={nightVision ? "#010501" : "#4fa2e3"} 
+            side={THREE.BackSide} 
+            fog={false} 
+          />
+        </mesh>
+
+        {/* 🏔️ distant 3D low-poly mountain range at Z = -45 */}
+        <group position={[0, -2, -45]}>
+          {/* Center peak */}
+          <mesh position={[0, 0, 0]}>
+            <coneGeometry args={[18, 22, 4]} />
+            <meshStandardMaterial color={nightVision ? "#030c03" : "#323c47"} roughness={0.9} flatShading wireframe={nightVision} />
+          </mesh>
+          {/* Left peak */}
+          <mesh position={[-18, 0, 5]}>
+            <coneGeometry args={[14, 18, 4]} />
+            <meshStandardMaterial color={nightVision ? "#041004" : "#45505e"} roughness={0.9} flatShading wireframe={nightVision} />
+          </mesh>
+          {/* Right peak */}
+          <mesh position={[18, 0, 3]}>
+            <coneGeometry args={[15, 20, 4]} />
+            <meshStandardMaterial color={nightVision ? "#041004" : "#3d4854"} roughness={0.9} flatShading wireframe={nightVision} />
+          </mesh>
+        </group>
+
+        {/* ☁️ 3D DRIFTING CLOUDS (Daylight mode only) */}
+        {!nightVision && (
+          <>
+            <Cloud position={[-15, 12, 10]} speed={0.4} />
+            <Cloud position={[10, 14, -5]} speed={0.3} />
+            <Cloud position={[-5, 13, -20]} speed={0.5} />
+          </>
+        )}
 
         {/* 🛣️ THE OUTDOOR ROAD (Highway) */}
         {/* Asphalt pavement */}
@@ -463,6 +619,14 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
           </group>
         ))}
 
+        {/* 🧱 3D Military Tank Traps (Barricades lining the shoulders) */}
+        {[-2, 4, 10, 16, 22].map(z => (
+          <group key={z}>
+            <TankTrap position={[-5.4, -1.9, z]} nightVision={nightVision} />
+            <TankTrap position={[5.4, -1.9, z]} nightVision={nightVision} />
+          </group>
+        ))}
+
         {/* Streetlight Posts (Yellow bulb in daylight, green in NV) */}
         {[3, 10, 17].map(z => (
           <group key={z}>
@@ -489,6 +653,12 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
             <pointLight position={[5.2, 3.9, z]} color={nightVision ? "#00ff41" : "#ffe8aa"} intensity={nightVision ? 1.2 : 0.8} distance={8} />
           </group>
         ))}
+
+        {/* 🗼 Rotating Searchlight Towers (Scanning Los Santos skies) */}
+        <SearchlightTower position={[-6.2, -1.9, 0]} nightVision={nightVision} />
+        <SearchlightTower position={[6.2, -1.9, 0]} nightVision={nightVision} />
+        <SearchlightTower position={[-6.2, -1.9, -15]} nightVision={nightVision} />
+        <SearchlightTower position={[6.2, -1.9, -15]} nightVision={nightVision} />
 
         {/* 🏢 THE CONCRETE BUNKER FACADE (Entrance Gate) */}
         <group position={[0, 0.1, -2.5]}>
