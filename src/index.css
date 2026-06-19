@@ -376,3 +376,402 @@ a:hover {
   pointer-events: none;
   z-index: 1;
 }
+
+/* ============================================================
+   TACTICAL VISOR HUD SYSTEM — Call of Duty Style
+   ============================================================ */
+.visor-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  color: var(--cod-primary);
+  user-select: none;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+.visor-hud * {
+  box-sizing: border-box;
+}
+
+/* Visor Grid overlay lines */
+.visor-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(0, 255, 65, 0.03);
+  box-shadow: inset 0 0 80px rgba(0, 255, 65, 0.02);
+}
+
+/* Glass screen glare/reflection curves */
+.visor-glass {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, transparent 50%, rgba(2, 6, 2, 0.3) 100%);
+  opacity: 0.85;
+}
+
+/* Compass */
+.hud-compass {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 38px;
+  border-left: 1px solid var(--cod-primary);
+  border-right: 1px solid var(--cod-primary);
+  background: rgba(2, 8, 2, 0.7);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.hud-compass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--cod-secondary);
+  z-index: 5;
+}
+
+.hud-compass-indicator {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--cod-secondary);
+  background: var(--cod-bg);
+  padding: 1px 5px;
+  border: 1px solid var(--cod-secondary);
+  border-radius: 2px;
+  z-index: 5;
+}
+
+.hud-compass-tape {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  width: 2880px; /* large enough to contain all headings duplicated */
+  height: 18px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+}
+
+.hud-compass-tick-container {
+  display: flex;
+  align-items: flex-end;
+  width: 720px; /* width of one full rotation sequence (360 degrees) */
+  flex-shrink: 0;
+}
+
+.hud-compass-tick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20px; /* 36 items per 360 deg = 10 degrees each */
+  flex-shrink: 0;
+}
+
+.hud-compass-tick-mark {
+  width: 1px;
+  height: 4px;
+  background: var(--cod-primary-dim);
+}
+
+.hud-compass-tick-mark.large {
+  height: 8px;
+  background: var(--cod-primary);
+}
+
+.hud-compass-tick-label {
+  font-size: 8px;
+  color: var(--cod-primary-dim);
+  margin-top: 1px;
+  font-weight: bold;
+}
+
+.hud-compass-tick-label.cardinal {
+  color: var(--cod-secondary);
+  font-size: 9px;
+}
+
+/* Telemetry display */
+.hud-telemetry {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  width: 230px;
+  padding: 10px;
+  background: rgba(2, 8, 2, 0.75);
+  border: 1px solid var(--cod-border);
+  border-top: 3px solid var(--cod-primary);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+}
+
+.hud-header {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--cod-secondary);
+  border-bottom: 1px solid var(--cod-border);
+  padding-bottom: 3px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.hud-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+
+.hud-row span:last-child {
+  color: var(--cod-text-bright);
+}
+
+/* Radar Minimap */
+.hud-radar {
+  position: absolute;
+  bottom: 25px;
+  left: 25px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  border: 2px solid var(--cod-border-light);
+  background: radial-gradient(circle, rgba(0, 255, 65, 0.05) 0%, rgba(2, 10, 2, 0.85) 100%);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 25px rgba(0,0,0,0.7);
+  overflow: hidden;
+}
+
+.hud-radar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-radial-gradient(
+    circle,
+    transparent 0px,
+    transparent 15px,
+    rgba(0, 255, 65, 0.04) 15px,
+    rgba(0, 255, 65, 0.04) 17px
+  );
+}
+
+.hud-radar-cross {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hud-radar-cross::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(0, 255, 65, 0.15);
+}
+
+.hud-radar-cross::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: rgba(0, 255, 65, 0.15);
+}
+
+.hud-radar-sweep {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: conic-gradient(from 0deg, rgba(0, 255, 65, 0.18) 0deg, transparent 75deg);
+  border-radius: 50%;
+  transform-origin: center;
+}
+
+.hud-radar-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--cod-secondary);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 6px var(--cod-secondary-glow);
+}
+
+.hud-radar-bunker {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: var(--cod-primary);
+  transform: translate(-50%, -50%) rotate(45deg);
+  box-shadow: 0 0 5px var(--cod-primary-glow);
+  top: 50%;
+  left: 50%;
+}
+
+/* Weapon card */
+.hud-weapon {
+  position: absolute;
+  bottom: 25px;
+  right: 25px;
+  width: 220px;
+  padding: 10px;
+  background: rgba(2, 8, 2, 0.75);
+  border: 1px solid var(--cod-border);
+  border-top: 3px solid var(--cod-secondary);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+}
+
+.hud-weapon-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--cod-text-bright);
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+.hud-weapon-type {
+  font-size: 8px;
+  color: var(--cod-text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.hud-ammo {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.hud-ammo-count {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--cod-primary);
+  line-height: 1;
+}
+
+.hud-ammo-divider {
+  font-size: 12px;
+  color: var(--cod-text-muted);
+  margin: 0 4px;
+}
+
+.hud-ammo-reserve {
+  font-size: 14px;
+  color: var(--cod-text);
+}
+
+.hud-attachments-grid {
+  border-top: 1px solid var(--cod-border);
+  padding-top: 5px;
+}
+
+.hud-attachment {
+  font-size: 8px;
+  color: var(--cod-text-muted);
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.hud-attachment::before {
+  content: '▪';
+  color: var(--cod-primary);
+  margin-right: 5px;
+}
+
+/* Center Crosshair Reticle */
+.hud-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hud-crosshair::before,
+.hud-crosshair::after {
+  content: '';
+  position: absolute;
+  background: var(--cod-primary);
+  opacity: 0.7;
+}
+
+/* horizontal line */
+.hud-crosshair::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+/* vertical line */
+.hud-crosshair::after {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.hud-crosshair-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: var(--cod-secondary);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 4px var(--cod-secondary);
+}
+
+.hud-crosshair-brackets {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+

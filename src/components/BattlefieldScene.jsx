@@ -474,6 +474,88 @@ function RazorWire({ position, length, nightVision }) {
   );
 }
 
+function SupplyCrate({ position, rotation, scale = [1, 1, 1], nightVision }) {
+  const woodColor = nightVision ? "#051605" : "#5a4531";
+  const metalColor = nightVision ? "#082008" : "#323532";
+  const stencilColor = nightVision ? "#00ff41" : "#dca818";
+  
+  return (
+    <group position={position} rotation={rotation} scale={scale}>
+      {/* Main crate block */}
+      <mesh castShadow receiveShadow position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.8, 0.8, 0.8]} />
+        <meshStandardMaterial color={woodColor} roughness={0.9} wireframe={nightVision} />
+      </mesh>
+      
+      {/* Metal corner frames */}
+      {/* Top frame */}
+      <mesh castShadow position={[0, 0.79, 0]}>
+        <boxGeometry args={[0.82, 0.02, 0.82]} />
+        <meshStandardMaterial color={metalColor} metalness={0.7} roughness={0.4} wireframe={nightVision} />
+      </mesh>
+      {/* Bottom frame */}
+      <mesh castShadow position={[0, 0.01, 0]}>
+        <boxGeometry args={[0.82, 0.02, 0.82]} />
+        <meshStandardMaterial color={metalColor} metalness={0.7} roughness={0.4} wireframe={nightVision} />
+      </mesh>
+      {/* Vertical support pillars */}
+      {[-0.39, 0.39].map((x) =>
+        [-0.39, 0.39].map((z) => (
+          <mesh key={`crate-pillar-${x}-${z}`} castShadow position={[x, 0.4, z]}>
+            <boxGeometry args={[0.04, 0.78, 0.04]} />
+            <meshStandardMaterial color={metalColor} metalness={0.7} roughness={0.4} wireframe={nightVision} />
+          </mesh>
+        ))
+      )}
+      
+      {/* Diagonal brace wood plank */}
+      <mesh castShadow position={[0, 0.4, 0.395]} rotation={[0, 0, 0.78]}>
+        <boxGeometry args={[0.03, 0.9, 0.03]} />
+        <meshStandardMaterial color={woodColor} roughness={0.9} wireframe={nightVision} />
+      </mesh>
+      
+      {/* Dynamic stenciled HTML text */}
+      <Html position={[0, 0.4, 0.41]} center distanceFactor={8} transform>
+        <div style={{
+          color: stencilColor,
+          fontFamily: 'monospace',
+          fontSize: '9px',
+          fontWeight: 'bold',
+          border: `1px solid ${stencilColor}`,
+          padding: '1px 3px',
+          opacity: nightVision ? 0.7 : 0.9,
+          background: 'rgba(0,0,0,0.6)',
+          letterSpacing: '1px',
+          transform: 'scale(0.8)',
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap'
+        }}>
+          SUPPLY CRATE
+        </div>
+      </Html>
+    </group>
+  );
+}
+
+function GravelDebris({ position, nightVision }) {
+  const rockColor = nightVision ? "#081008" : "#5d6063";
+  return (
+    <group position={position}>
+      <mesh castShadow receiveShadow position={[0, 0.05, 0]} rotation={[0.2, 0.5, 0.8]}>
+        <dodecahedronGeometry args={[0.15, 0]} />
+        <meshStandardMaterial color={rockColor} roughness={0.9} flatShading wireframe={nightVision} />
+      </mesh>
+      <mesh castShadow receiveShadow position={[0.2, 0.03, -0.1]} rotation={[0.7, 0.1, 0.3]}>
+        <dodecahedronGeometry args={[0.09, 0]} />
+        <meshStandardMaterial color={rockColor} roughness={0.9} flatShading wireframe={nightVision} />
+      </mesh>
+      <mesh castShadow receiveShadow position={[-0.15, 0.04, 0.15]} rotation={[0.4, 0.9, 0.1]}>
+        <dodecahedronGeometry args={[0.12, 0]} />
+        <meshStandardMaterial color={rockColor} roughness={0.9} flatShading wireframe={nightVision} />
+      </mesh>
+    </group>
+  );
+}
 
 const Soldier = forwardRef(({ isWalking, nightVision }, ref) => {
   const { scene, animations } = useGLTF('https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/models/gltf/Soldier.glb');
@@ -483,6 +565,8 @@ const Soldier = forwardRef(({ isWalking, nightVision }, ref) => {
     const map = new Map();
     scene.traverse((child) => {
       if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
         map.set(child.uuid, child.material);
       }
     });
@@ -956,15 +1040,211 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
     if (onNearTerminal) {
       onNearTerminal(nearestDoor);
     }
+
+    // --- Live Visor HUD Screen Updates ---
+    if (is3DMode) {
+      // 1. Calculate camera heading angle relative to world Z
+      const camDir = new THREE.Vector3();
+      state.camera.getWorldDirection(camDir);
+      let angleRad = Math.atan2(-camDir.x, -camDir.z);
+      if (angleRad < 0) angleRad += Math.PI * 2;
+      const degrees = Math.round(angleRad * 180 / Math.PI) % 360;
+
+      // Update HUD elements directly in the DOM for maximum 60FPS performance
+      const elX = document.getElementById('hud-val-x');
+      const elY = document.getElementById('hud-val-y');
+      const elZ = document.getElementById('hud-val-z');
+      const elFPS = document.getElementById('hud-val-fps');
+      const elCompassVal = document.getElementById('hud-compass-val');
+      const elCompassTape = document.getElementById('hud-compass-tape');
+      const elRadarDot = document.getElementById('hud-radar-dot');
+
+      if (elX) elX.innerText = playerX.current.toFixed(2);
+      if (elY) elY.innerText = playerY.current.toFixed(2);
+      if (elZ) elZ.innerText = playerZ.current.toFixed(2);
+
+      const fps = Math.round(1 / delta);
+      if (elFPS) elFPS.innerText = isNaN(fps) || !isFinite(fps) ? '60' : fps;
+
+      if (elCompassVal) elCompassVal.innerText = `${degrees}°`;
+      if (elCompassTape) {
+        // Width of one full 360 rotation on tape is 720px (2px per degree)
+        // tx aligns the active degree mark at the container's center line (160px)
+        const tx = 160 - 720 - (degrees * 2);
+        elCompassTape.style.transform = `translateX(${tx}px)`;
+      }
+
+      if (elRadarDot) {
+        // Map player coordinates onto the 130px radar circle centered at (65, 65)
+        const dotX = 65 + playerX.current * 4.5;
+        const dotZ = 65 + (playerZ.current - (-2.5)) * 1.15;
+        elRadarDot.style.left = `${dotX}px`;
+        elRadarDot.style.top = `${dotZ}px`;
+      }
+    }
   });
 
+  const headings = useMemo(() => [
+    { label: 'N', degree: 0, cardinal: true },
+    { label: '10', degree: 10 },
+    { label: '20', degree: 20 },
+    { label: '30', degree: 30 },
+    { label: 'NE', degree: 40, cardinal: true },
+    { label: '50', degree: 50 },
+    { label: '60', degree: 60 },
+    { label: '70', degree: 70 },
+    { label: '80', degree: 80 },
+    { label: 'E', degree: 90, cardinal: true },
+    { label: '100', degree: 100 },
+    { label: '110', degree: 110 },
+    { label: '120', degree: 120 },
+    { label: 'SE', degree: 130, cardinal: true },
+    { label: '140', degree: 140 },
+    { label: '150', degree: 150 },
+    { label: '160', degree: 160 },
+    { label: '170', degree: 170 },
+    { label: 'S', degree: 180, cardinal: true },
+    { label: '190', degree: 190 },
+    { label: '200', degree: 200 },
+    { label: '210', degree: 210 },
+    { label: 'SW', degree: 220, cardinal: true },
+    { label: '230', degree: 230 },
+    { label: '240', degree: 240 },
+    { label: '250', degree: 250 },
+    { label: '260', degree: 260 },
+    { label: 'W', degree: 270, cardinal: true },
+    { label: '280', degree: 280 },
+    { label: '290', degree: 290 },
+    { label: '300', degree: 300 },
+    { label: 'NW', degree: 310, cardinal: true },
+    { label: '320', degree: 320 },
+    { label: '330', degree: 330 },
+    { label: '340', degree: 340 },
+    { label: '350', degree: 350 }
+  ], []);
+
   return (
-    <Soldier 
-      ref={soldierRef} 
-      isWalking={isWalkingRef.current} 
-      nightVision={nightVision}
-    />
+    <>
+      <Soldier 
+        ref={soldierRef} 
+        isWalking={isWalkingRef.current} 
+        nightVision={nightVision}
+      />
+      
+      {is3DMode && (
+        <Html fullscreen style={{ pointerEvents: 'none' }}>
+          <div className="visor-hud">
+            {/* Overlay grids and curves */}
+            <div className="visor-grid" />
+            <div className="visor-glass" />
+            
+            {/* 1. Compass Overlay */}
+            <div className="hud-compass">
+              <div className="hud-compass-indicator" id="hud-compass-val">0°</div>
+              <div className="hud-compass-tape" id="hud-compass-tape">
+                {[0, 1, 2].map(rotIdx => (
+                  <div key={rotIdx} className="hud-compass-tick-container">
+                    {headings.map((h, idx) => {
+                      const isCardinal = h.cardinal;
+                      const isMajor = h.degree % 30 === 0 || isCardinal;
+                      return (
+                        <div key={idx} className="hud-compass-tick-item">
+                          <div className={isMajor ? "hud-compass-tick-mark large" : "hud-compass-tick-mark"} />
+                          <div className={isCardinal ? "hud-compass-tick-label cardinal" : "hud-compass-tick-label"}>
+                            {h.label}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Telemetry Log Overlay */}
+            <div className="hud-telemetry">
+              <div className="hud-header">
+                <span>TELEMETRY FEED</span>
+                <span>ONLINE</span>
+              </div>
+              <div className="hud-row">
+                <span>LAT / LON X:</span>
+                <span id="hud-val-x">2.00</span>
+              </div>
+              <div className="hud-row">
+                <span>ALTITUDE Y:</span>
+                <span id="hud-val-y">-1.90</span>
+              </div>
+              <div className="hud-row">
+                <span>DISTANCE Z:</span>
+                <span id="hud-val-z">45.00</span>
+              </div>
+              <div className="hud-row">
+                <span>FRAME RATE:</span>
+                <span><span id="hud-val-fps">60</span> FPS</span>
+              </div>
+              <div className="hud-row">
+                <span>SYS SECTOR:</span>
+                <span>ZANCUDO-07</span>
+              </div>
+            </div>
+
+            {/* 3. Minimap Radar */}
+            <div className="hud-radar">
+              <div className="hud-radar-cross" />
+              <div className="hud-radar-sweep" />
+              <div className="hud-radar-bunker" />
+              <div className="hud-radar-dot" id="hud-radar-dot" />
+            </div>
+
+            {/* 4. Weapon Loadout Card */}
+            <div className="hud-weapon">
+              <div className="hud-weapon-name">M4A1 CARBINE</div>
+              <div className="hud-weapon-type">Assault Rifle — 5.56mm</div>
+              <div className="hud-ammo">
+                <span className="hud-ammo-count">30</span>
+                <span className="hud-ammo-divider">/</span>
+                <span className="hud-ammo-reserve">120</span>
+              </div>
+              <div className="hud-attachments-grid">
+                <div className="hud-attachment">Muzzle: Monolithic Suppressor</div>
+                <div className="hud-attachment">Optic: Viper Reflex Sight</div>
+                <div className="hud-attachment">Underbarrel: Operator Foregrip</div>
+                <div className="hud-attachment">Magazine: 30 Round Straight Mag</div>
+              </div>
+            </div>
+
+            {/* 5. Center Targeting Crosshair */}
+            <div className="hud-crosshair">
+              <div className="hud-crosshair-center" />
+              <div className="hud-crosshair-brackets" />
+            </div>
+          </div>
+        </Html>
+      )}
+    </>
   );
+}
+
+function ShadowEnabler({ children }) {
+  const ref = useRef();
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.traverse((node) => {
+        if (node.isMesh) {
+          // Avoid shadows on wireframes, sky dome, or basic glowing materials
+          if (node.material && (node.material.type === 'MeshBasicMaterial' || node.material.wireframe)) {
+            node.castShadow = false;
+            node.receiveShadow = false;
+          } else {
+            node.castShadow = true;
+            node.receiveShadow = true;
+          }
+        }
+      });
+    }
+  });
+  return <group ref={ref}>{children}</group>;
 }
 
 export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalId, onNearTerminal, onUpdateWalking, nightVision }) {
@@ -1001,28 +1281,294 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
       zIndex: 0,
     }}>
       <Canvas
+        shadows
         camera={{ position: [0, 2, 50], fov: 60, near: 0.1, far: 200 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: nightVision ? '#020402' : 'transparent' }}
       >
         <ambientLight intensity={ambientIntensity} color={ambientColor} />
-        <directionalLight position={[15, 25, 15]} intensity={sunIntensity} color={sunColor} />
+        <directionalLight 
+          position={[15, 25, 15]} 
+          intensity={sunIntensity} 
+          color={sunColor} 
+          castShadow={!nightVision}
+          shadow-mapSize={[1024, 1024]}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
+          shadow-camera-near={0.5}
+          shadow-camera-far={60}
+          shadow-bias={-0.0005}
+        />
         {!nightVision && <directionalLight position={[-15, 12, -15]} intensity={0.35} color="#aaccff" />}
         
         <fog attach="fog" args={[fogColor, fogNear, fogFar]} />
         
-        {/* Wrap GLTF loader in Suspense */}
-        <Suspense fallback={null}>
-          <CameraController 
-            is3DMode={is3DMode} 
-            virtualDir={virtualDir}
-            onNearTerminal={onNearTerminal}
-            onUpdateWalking={onUpdateWalking}
-            nightVision={nightVision}
-            controlsRef={controlsRef}
+        <ShadowEnabler>
+          {/* Wrap GLTF loader in Suspense */}
+          <Suspense fallback={null}>
+            <CameraController 
+              is3DMode={is3DMode} 
+              virtualDir={virtualDir}
+              onNearTerminal={onNearTerminal}
+              onUpdateWalking={onUpdateWalking}
+              nightVision={nightVision}
+              controlsRef={controlsRef}
+            />
+          </Suspense>
+          
+          {/* 🌎 Giant Landscape Ground Floor */}
+          <mesh name="ground-terrain" rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.92, 15]}>
+            <planeGeometry args={[300, 200]} />
+            <meshStandardMaterial color={nightVision ? "#060f06" : "#453e34"} roughness={0.95} />
+          </mesh>
+
+          {/* 🛣️ THE OUTDOOR ROAD (Highway - widened to 18, lengthened to 120) */}
+          {/* Asphalt pavement */}
+          <mesh name="road-pavement" rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.9, 15]}>
+            <planeGeometry args={[18, 120]} />
+            <meshStandardMaterial color={nightVision ? "#1a1c1a" : "#282a2b"} roughness={0.85} metalness={0.1} />
+          </mesh>
+          
+          {/* Skid marks on the road */}
+          {[-10, 15, 40].map((z, idx) => (
+            <mesh key={`skid-${idx}`} rotation={[-Math.PI / 2, 0, 0.04]} position={[idx % 2 === 0 ? -1.8 : 2.2, -1.89, z]}>
+              <planeGeometry args={[0.32, 6.0]} />
+              <meshBasicMaterial color="#111111" transparent opacity={nightVision ? 0.25 : 0.55} />
+            </mesh>
+          ))}
+
+          {/* Asphalt cracks */}
+          {[
+            { x: -2, z: 12, rot: 0.8, w: 0.02, l: 3.5 },
+            { x: 3, z: -5, rot: -0.5, w: 0.02, l: 4 },
+            { x: -4, z: 32, rot: 1.2, w: 0.02, l: 3 },
+            { x: 1, z: 50, rot: -0.3, w: 0.02, l: 5 },
+          ].map((crack, idx) => (
+            <mesh key={`crack-${idx}`} rotation={[-Math.PI / 2, 0, crack.rot]} position={[crack.x, -1.89, crack.z]}>
+              <planeGeometry args={[crack.w, crack.l]} />
+              <meshBasicMaterial color="#18181a" transparent opacity={nightVision ? 0.35 : 0.65} />
+            </mesh>
+          ))}
+
+          {/* Yellow center dashed lanes on the sides of Jersey barrier */}
+          {[-38, -30, -22, -14, -6, 2, 10, 18, 26, 34, 42, 50, 58, 66, 74].map(z => (
+            <group key={z}>
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-0.6, -1.88, z]}>
+                <planeGeometry args={[0.1, 2.5]} />
+                <meshBasicMaterial color="#ffcc00" />
+              </mesh>
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.6, -1.88, z]}>
+                <planeGeometry args={[0.1, 2.5]} />
+                <meshBasicMaterial color="#ffcc00" />
+              </mesh>
+            </group>
+          ))}
+
+          {/* White side lane lines */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-8.8, -1.88, 15]}>
+            <planeGeometry args={[0.15, 120]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[8.8, -1.88, 15]}>
+            <planeGeometry args={[0.15, 120]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh>
+
+          {/* Concrete Side Guardrails segmented for high fidelity depth */}
+          {Array.from({ length: 30 }).map((_, i) => {
+            const z = -38 + i * 4.0;
+            return (
+              <group key={`guard-${i}`}>
+                {/* Left shoulder guardrail */}
+                <mesh position={[-8.9, -1.0, z]}>
+                  <boxGeometry args={[0.35, 1.8, 3.8]} />
+                  <meshStandardMaterial color={nightVision ? "#081008" : "#6c6e70"} roughness={0.9} wireframe={nightVision} />
+                </mesh>
+                {/* Right shoulder guardrail */}
+                <mesh position={[8.9, -1.0, z]}>
+                  <boxGeometry args={[0.35, 1.8, 3.8]} />
+                  <meshStandardMaterial color={nightVision ? "#081008" : "#6c6e70"} roughness={0.9} wireframe={nightVision} />
+                </mesh>
+              </group>
+            );
+          })}
+
+          {/* Concrete Jersey Barriers down center lane (X = 0) */}
+          {Array.from({ length: 18 }).map((_, i) => {
+            const z = -2.0 + i * 4.0;
+            return <JerseyBarrier key={`jersey-${i}`} position={[0, -1.9, z]} nightVision={nightVision} />;
+          })}
+
+          {/* Warning Signboards along shoulders */}
+          <MilitarySign 
+            position={[-7.8, -1.9, 55]} 
+            rotation={[0, 0.2, 0]} 
+            title="FORT ZANCUDO" 
+            subtitle="MILITARY BASE OUTPOST AHEAD - SPEED LIMIT 15 MPH" 
+            nightVision={nightVision} 
           />
-        </Suspense>
-        
+          <MilitarySign 
+            position={[7.8, -1.9, 20]} 
+            rotation={[0, -0.3, 0]} 
+            title="WARNING" 
+            subtitle="DEADLY FORCE AUTHORIZED - RESTRICTED MILITARY AREA" 
+            nightVision={nightVision} 
+          />
+          <MilitarySign 
+            position={[-7.8, -1.9, 6]} 
+            rotation={[0, 0.4, 0]} 
+            title="RESTRICTED ENTRY" 
+            subtitle="IDENTIFICATION CARD AND BIOMETRICS SCAN REQUIRED" 
+            nightVision={nightVision} 
+          />
+
+          {/* 🌴 Upgraded Stylized 3D Palm Trees (Lining both shoulders) */}
+          {[-30, -15, 0, 15, 30, 45, 60, 75].map(z => (
+            <group key={z}>
+              <PalmTree position={[-8.2, -1.9, z]} nightVision={nightVision} />
+              <PalmTree position={[8.2, -1.9, z]} nightVision={nightVision} />
+            </group>
+          ))}
+
+          {/* 🧱 Upgraded Military Tank Traps */}
+          {[-22, -10, 5, 20, 35, 50, 65].map(z => (
+            <group key={z}>
+              <TankTrap position={[-8.3, -1.9, z]} nightVision={nightVision} />
+              <TankTrap position={[8.3, -1.9, z]} nightVision={nightVision} />
+            </group>
+          ))}
+
+          {/* Streetlight Posts */}
+          {[-15, 15, 45, 75].map(z => (
+            <group key={z}>
+              {/* Left Post */}
+              <mesh position={[-8.8, 1.1, z]}>
+                <cylinderGeometry args={[0.08, 0.08, 6]} />
+                <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
+              </mesh>
+              <mesh position={[-8.5, 4.1, z]} rotation={[0, 0, Math.PI / 2]}>
+                <cylinderGeometry args={[0.06, 0.06, 0.6]} />
+                <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
+              </mesh>
+              <pointLight position={[-8.2, 3.9, z]} color={nightVision ? "#00ff41" : "#ffe8aa"} intensity={nightVision ? 1.2 : 0.8} distance={12} />
+
+              {/* Right Post */}
+              <mesh position={[8.8, 1.1, z]}>
+                <cylinderGeometry args={[0.08, 0.08, 6]} />
+                <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
+              </mesh>
+              <mesh position={[8.5, 4.1, z]} rotation={[0, 0, -Math.PI / 2]}>
+                <cylinderGeometry args={[0.06, 0.06, 0.6]} />
+                <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
+              </mesh>
+              <pointLight position={[8.2, 3.9, z]} color={nightVision ? "#00ff41" : "#ffe8aa"} intensity={nightVision ? 1.2 : 0.8} distance={12} />
+            </group>
+          ))}
+
+          {/* 🗼 Upgraded Searchlight Towers (Grid setup scanning the valley) */}
+          <SearchlightTower position={[-9.5, -1.9, 30]} nightVision={nightVision} />
+          <SearchlightTower position={[9.5, -1.9, 30]} nightVision={nightVision} />
+          <SearchlightTower position={[-9.5, -1.9, 0]} nightVision={nightVision} />
+          <SearchlightTower position={[9.5, -1.9, 0]} nightVision={nightVision} />
+          <SearchlightTower position={[-9.5, -1.9, -20]} nightVision={nightVision} />
+          <SearchlightTower position={[9.5, -1.9, -20]} nightVision={nightVision} />
+
+          {/* 🏢 THE CONCRETE BUNKER FACADE (Entrance Gate) */}
+          <group position={[0, 0.1, -2.5]}>
+            {/* Left Wall Segment */}
+            <mesh position={[-4.5, 1, 0]}>
+              <boxGeometry args={[3, 4.2, 0.6]} />
+              <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
+            </mesh>
+            {/* Right Wall Segment */}
+            <mesh position={[4.5, 1, 0]}>
+              <boxGeometry args={[3, 4.2, 0.6]} />
+              <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
+            </mesh>
+            {/* Arch Ceiling Beam */}
+            <mesh position={[0, 2.7, 0]}>
+              <boxGeometry args={[6, 0.8, 0.6]} />
+              <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
+            </mesh>
+
+            {/* Black/Yellow Hazard Warning Stripes on Arch front face */}
+            <group position={[0, 2.7, 0.31]} rotation={[0, 0, 0]}>
+              {Array.from({ length: 11 }).map((_, i) => {
+                const x = -2.5 + i * 0.5;
+                return (
+                  <mesh key={`hazard-${i}`} position={[x, 0, 0]} rotation={[0, 0, -Math.PI / 4]}>
+                    <planeGeometry args={[0.15, 0.75]} />
+                    <meshBasicMaterial color={i % 2 === 0 ? "#ffcc00" : "#111111"} />
+                  </mesh>
+                );
+              })}
+            </group>
+
+            {/* Razor security wire coils on top of the side walls */}
+            <RazorWire position={[-4.5, 3.2, 0]} length={3.0} nightVision={nightVision} />
+            <RazorWire position={[4.5, 3.2, 0]} length={3.0} nightVision={nightVision} />
+
+            {/* Overhead spotlights casting real spotlight cones */}
+            <OverheadFloodlight position={[-1.8, 2.7, 0.35]} nightVision={nightVision} />
+            <OverheadFloodlight position={[1.8, 2.7, 0.35]} nightVision={nightVision} />
+          </group>
+
+          {/* 🧱 Military Supply Crates dressing the bunker entrance */}
+          {/* Left stack */}
+          <SupplyCrate position={[-3.1, -1.9, 1.2]} rotation={[0, 0.5, 0]} nightVision={nightVision} />
+          <SupplyCrate position={[-3.15, -1.1, 1.2]} rotation={[0, 0.15, 0]} scale={[0.88, 0.88, 0.88]} nightVision={nightVision} />
+          {/* Right stack */}
+          <SupplyCrate position={[3.1, -1.9, 0.9]} rotation={[0, -0.4, 0]} nightVision={nightVision} />
+
+          {/* 🪨 Gravel Debris rock clusters along road shoulders */}
+          <GravelDebris position={[-7.5, -1.9, 12]} nightVision={nightVision} />
+          <GravelDebris position={[7.6, -1.9, -4]} nightVision={nightVision} />
+          <GravelDebris position={[-7.8, -1.9, 28]} nightVision={nightVision} />
+          <GravelDebris position={[7.7, -1.9, 48]} nightVision={nightVision} />
+          <GravelDebris position={[-7.6, -1.9, 62]} nightVision={nightVision} />
+
+          {/* 🏢 INSIDE BUNKER CORRIDOR */}
+          {/* Hallway Floor */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.9, -17.5]}>
+            <planeGeometry args={[10, 30]} />
+            <meshStandardMaterial color={nightVision ? "#090b09" : "#1e1e1e"} roughness={0.7} metalness={0.5} />
+          </mesh>
+          
+          {/* Corridor Side Walls */}
+          <mesh position={[-5, 1.1, -17.5]}>
+            <boxGeometry args={[0.2, 6, 30]} />
+            <meshStandardMaterial color={nightVision ? "#061206" : "#2d332d"} wireframe />
+          </mesh>
+          <mesh position={[5, 1.1, -17.5]}>
+            <boxGeometry args={[0.2, 6, 30]} />
+            <meshStandardMaterial color={nightVision ? "#061206" : "#2d332d"} wireframe />
+          </mesh>
+
+          {/* Ceiling Panels */}
+          <mesh position={[0, 4.1, -17.5]} rotation={[Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[10, 30]} />
+            <meshStandardMaterial color={nightVision ? "#030803" : "#0d120d"} roughness={0.9} />
+          </mesh>
+          
+          {/* Back Wall */}
+          <mesh position={[0, 1.1, -32.5]}>
+            <boxGeometry args={[10, 6, 0.2]} />
+            <meshStandardMaterial color={nightVision ? "#061206" : "#1a1f1a"} wireframe />
+          </mesh>
+
+          {/* 🚪 RENDER THE DOORS */}
+          {DOORS.map(door => (
+            <BunkerDoor 
+              key={door.id}
+              door={door}
+              isNear={activeTerminalId === door.id}
+              nightVision={nightVision}
+            />
+          ))}
+        </ShadowEnabler>
+
         {/* THREE-DIMENSIONAL ATMOSPHERICS (Drei Sparkles library) */}
         <Sparkles 
           count={150} 
@@ -1087,242 +1633,6 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
             <Cloud position={[35, 16, 40]} speed={0.3} />
           </>
         )}
-
-        {/* 🌎 Giant Landscape Ground Floor */}
-        <mesh name="ground-terrain" rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.92, 15]}>
-          <planeGeometry args={[300, 200]} />
-          <meshStandardMaterial color={nightVision ? "#060f06" : "#453e34"} roughness={0.95} />
-        </mesh>
-
-        {/* 🛣️ THE OUTDOOR ROAD (Highway - widened to 18, lengthened to 120) */}
-        {/* Asphalt pavement */}
-        <mesh name="road-pavement" rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.9, 15]}>
-          <planeGeometry args={[18, 120]} />
-          <meshStandardMaterial color={nightVision ? "#1a1c1a" : "#282a2b"} roughness={0.85} metalness={0.1} />
-        </mesh>
-        
-        {/* Skid marks on the road */}
-        {[-10, 15, 40].map((z, idx) => (
-          <mesh key={`skid-${idx}`} rotation={[-Math.PI / 2, 0, 0.04]} position={[idx % 2 === 0 ? -1.8 : 2.2, -1.89, z]}>
-            <planeGeometry args={[0.32, 6.0]} />
-            <meshBasicMaterial color="#111111" transparent opacity={nightVision ? 0.25 : 0.55} />
-          </mesh>
-        ))}
-
-        {/* Asphalt cracks */}
-        {[
-          { x: -2, z: 12, rot: 0.8, w: 0.02, l: 3.5 },
-          { x: 3, z: -5, rot: -0.5, w: 0.02, l: 4 },
-          { x: -4, z: 32, rot: 1.2, w: 0.02, l: 3 },
-          { x: 1, z: 50, rot: -0.3, w: 0.02, l: 5 },
-        ].map((crack, idx) => (
-          <mesh key={`crack-${idx}`} rotation={[-Math.PI / 2, 0, crack.rot]} position={[crack.x, -1.89, crack.z]}>
-            <planeGeometry args={[crack.w, crack.l]} />
-            <meshBasicMaterial color="#18181a" transparent opacity={nightVision ? 0.35 : 0.65} />
-          </mesh>
-        ))}
-
-        {/* Yellow center dashed lanes on the sides of Jersey barrier */}
-        {[-38, -30, -22, -14, -6, 2, 10, 18, 26, 34, 42, 50, 58, 66, 74].map(z => (
-          <group key={z}>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-0.6, -1.88, z]}>
-              <planeGeometry args={[0.1, 2.5]} />
-              <meshBasicMaterial color="#ffcc00" />
-            </mesh>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.6, -1.88, z]}>
-              <planeGeometry args={[0.1, 2.5]} />
-              <meshBasicMaterial color="#ffcc00" />
-            </mesh>
-          </group>
-        ))}
-
-        {/* White side lane lines */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-8.8, -1.88, 15]}>
-          <planeGeometry args={[0.15, 120]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[8.8, -1.88, 15]}>
-          <planeGeometry args={[0.15, 120]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
-
-        {/* Concrete Side Guardrails segmented for high fidelity depth */}
-        {Array.from({ length: 30 }).map((_, i) => {
-          const z = -38 + i * 4.0;
-          return (
-            <group key={`guard-${i}`}>
-              {/* Left shoulder guardrail */}
-              <mesh position={[-8.9, -1.0, z]}>
-                <boxGeometry args={[0.35, 1.8, 3.8]} />
-                <meshStandardMaterial color={nightVision ? "#081008" : "#6c6e70"} roughness={0.9} wireframe={nightVision} />
-              </mesh>
-              {/* Right shoulder guardrail */}
-              <mesh position={[8.9, -1.0, z]}>
-                <boxGeometry args={[0.35, 1.8, 3.8]} />
-                <meshStandardMaterial color={nightVision ? "#081008" : "#6c6e70"} roughness={0.9} wireframe={nightVision} />
-              </mesh>
-            </group>
-          );
-        })}
-
-        {/* Concrete Jersey Barriers down center lane (X = 0) */}
-        {Array.from({ length: 18 }).map((_, i) => {
-          const z = -2.0 + i * 4.0;
-          return <JerseyBarrier key={`jersey-${i}`} position={[0, -1.9, z]} nightVision={nightVision} />;
-        })}
-
-        {/* Warning Signboards along shoulders */}
-        <MilitarySign 
-          position={[-7.8, -1.9, 55]} 
-          rotation={[0, 0.2, 0]} 
-          title="FORT ZANCUDO" 
-          subtitle="MILITARY BASE OUTPOST AHEAD - SPEED LIMIT 15 MPH" 
-          nightVision={nightVision} 
-        />
-        <MilitarySign 
-          position={[7.8, -1.9, 20]} 
-          rotation={[0, -0.3, 0]} 
-          title="WARNING" 
-          subtitle="DEADLY FORCE AUTHORIZED - RESTRICTED MILITARY AREA" 
-          nightVision={nightVision} 
-        />
-        <MilitarySign 
-          position={[-7.8, -1.9, 6]} 
-          rotation={[0, 0.4, 0]} 
-          title="RESTRICTED ENTRY" 
-          subtitle="IDENTIFICATION CARD AND BIOMETRICS SCAN REQUIRED" 
-          nightVision={nightVision} 
-        />
-
-        {/* 🌴 Upgraded Stylized 3D Palm Trees (Lining both shoulders) */}
-        {[-30, -15, 0, 15, 30, 45, 60, 75].map(z => (
-          <group key={z}>
-            <PalmTree position={[-8.2, -1.9, z]} nightVision={nightVision} />
-            <PalmTree position={[8.2, -1.9, z]} nightVision={nightVision} />
-          </group>
-        ))}
-
-        {/* 🧱 Upgraded Military Tank Traps */}
-        {[-22, -10, 5, 20, 35, 50, 65].map(z => (
-          <group key={z}>
-            <TankTrap position={[-8.3, -1.9, z]} nightVision={nightVision} />
-            <TankTrap position={[8.3, -1.9, z]} nightVision={nightVision} />
-          </group>
-        ))}
-
-        {/* Streetlight Posts */}
-        {[-15, 15, 45, 75].map(z => (
-          <group key={z}>
-            {/* Left Post */}
-            <mesh position={[-8.8, 1.1, z]}>
-              <cylinderGeometry args={[0.08, 0.08, 6]} />
-              <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
-            </mesh>
-            <mesh position={[-8.5, 4.1, z]} rotation={[0, 0, Math.PI / 2]}>
-              <cylinderGeometry args={[0.06, 0.06, 0.6]} />
-              <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
-            </mesh>
-            <pointLight position={[-8.2, 3.9, z]} color={nightVision ? "#00ff41" : "#ffe8aa"} intensity={nightVision ? 1.2 : 0.8} distance={12} />
-
-            {/* Right Post */}
-            <mesh position={[8.8, 1.1, z]}>
-              <cylinderGeometry args={[0.08, 0.08, 6]} />
-              <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
-            </mesh>
-            <mesh position={[8.5, 4.1, z]} rotation={[0, 0, -Math.PI / 2]}>
-              <cylinderGeometry args={[0.06, 0.06, 0.6]} />
-              <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
-            </mesh>
-            <pointLight position={[8.2, 3.9, z]} color={nightVision ? "#00ff41" : "#ffe8aa"} intensity={nightVision ? 1.2 : 0.8} distance={12} />
-          </group>
-        ))}
-
-        {/* 🗼 Upgraded Searchlight Towers (Grid setup scanning the valley) */}
-        <SearchlightTower position={[-9.5, -1.9, 30]} nightVision={nightVision} />
-        <SearchlightTower position={[9.5, -1.9, 30]} nightVision={nightVision} />
-        <SearchlightTower position={[-9.5, -1.9, 0]} nightVision={nightVision} />
-        <SearchlightTower position={[9.5, -1.9, 0]} nightVision={nightVision} />
-        <SearchlightTower position={[-9.5, -1.9, -20]} nightVision={nightVision} />
-        <SearchlightTower position={[9.5, -1.9, -20]} nightVision={nightVision} />
-
-        {/* 🏢 THE CONCRETE BUNKER FACADE (Entrance Gate) */}
-        <group position={[0, 0.1, -2.5]}>
-          {/* Left Wall Segment */}
-          <mesh position={[-4.5, 1, 0]}>
-            <boxGeometry args={[3, 4.2, 0.6]} />
-            <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
-          </mesh>
-          {/* Right Wall Segment */}
-          <mesh position={[4.5, 1, 0]}>
-            <boxGeometry args={[3, 4.2, 0.6]} />
-            <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
-          </mesh>
-          {/* Arch Ceiling Beam */}
-          <mesh position={[0, 2.7, 0]}>
-            <boxGeometry args={[6, 0.8, 0.6]} />
-            <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
-          </mesh>
-
-          {/* Black/Yellow Hazard Warning Stripes on Arch front face */}
-          <group position={[0, 2.7, 0.31]} rotation={[0, 0, 0]}>
-            {Array.from({ length: 11 }).map((_, i) => {
-              const x = -2.5 + i * 0.5;
-              return (
-                <mesh key={`hazard-${i}`} position={[x, 0, 0]} rotation={[0, 0, -Math.PI / 4]}>
-                  <planeGeometry args={[0.15, 0.75]} />
-                  <meshBasicMaterial color={i % 2 === 0 ? "#ffcc00" : "#111111"} />
-                </mesh>
-              );
-            })}
-          </group>
-
-          {/* Razor security wire coils on top of the side walls */}
-          <RazorWire position={[-4.5, 3.2, 0]} length={3.0} nightVision={nightVision} />
-          <RazorWire position={[4.5, 3.2, 0]} length={3.0} nightVision={nightVision} />
-
-          {/* Overhead spotlights casting real spotlight cones */}
-          <OverheadFloodlight position={[-1.8, 2.7, 0.35]} nightVision={nightVision} />
-          <OverheadFloodlight position={[1.8, 2.7, 0.35]} nightVision={nightVision} />
-        </group>
-
-        {/* 🏢 INSIDE BUNKER CORRIDOR */}
-        {/* Hallway Floor */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.9, -17.5]}>
-          <planeGeometry args={[10, 30]} />
-          <meshStandardMaterial color={nightVision ? "#090b09" : "#1e1e1e"} roughness={0.7} metalness={0.5} />
-        </mesh>
-        
-        {/* Corridor Side Walls */}
-        <mesh position={[-5, 1.1, -17.5]}>
-          <boxGeometry args={[0.2, 6, 30]} />
-          <meshStandardMaterial color={nightVision ? "#061206" : "#2d332d"} wireframe />
-        </mesh>
-        <mesh position={[5, 1.1, -17.5]}>
-          <boxGeometry args={[0.2, 6, 30]} />
-          <meshStandardMaterial color={nightVision ? "#061206" : "#2d332d"} wireframe />
-        </mesh>
-
-        {/* Ceiling Panels */}
-        <mesh position={[0, 4.1, -17.5]} rotation={[Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[10, 30]} />
-          <meshStandardMaterial color={nightVision ? "#030803" : "#0d120d"} roughness={0.9} />
-        </mesh>
-        
-        {/* Back Wall */}
-        <mesh position={[0, 1.1, -32.5]}>
-          <boxGeometry args={[10, 6, 0.2]} />
-          <meshStandardMaterial color={nightVision ? "#061206" : "#1a1f1a"} wireframe />
-        </mesh>
-
-        {/* 🚪 RENDER THE DOORS */}
-        {DOORS.map(door => (
-          <BunkerDoor 
-            key={door.id}
-            door={door}
-            isNear={activeTerminalId === door.id}
-            nightVision={nightVision}
-          />
-        ))}
 
         {/* 🎥 Upgraded Orbit Follow Controls */}
         <OrbitControls
