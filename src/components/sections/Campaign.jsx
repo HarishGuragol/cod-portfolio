@@ -1,8 +1,10 @@
 /* ============================================================
    Campaign — Interactive Sonar Radar Recon
    ============================================================ */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import CONFIG from '../../config';
 import { playUIHover, playUIClick } from '../../utils/audio';
 
@@ -61,6 +63,95 @@ const RADAR_TARGETS = [
     ]
   }
 ];
+
+function RadarDisk3D({ activeIdx, scannedSet, onSelectTarget }) {
+  const sweepRef = useRef();
+  
+  useFrame((state) => {
+    if (sweepRef.current) {
+      sweepRef.current.rotation.z = -state.clock.elapsedTime * 1.6;
+    }
+  });
+
+  const targets = [
+    { idx: 0, pos: [-0.35, 0.45, 0.05], label: 'Alpha' },
+    { idx: 1, pos: [0.6, -0.05, 0.05], label: 'Beta' },
+    { idx: 2, pos: [0.0, -0.65, 0.05], label: 'Gamma' }
+  ];
+
+  return (
+    <group scale={[1.4, 1.4, 1.4]}>
+      {/* Outer Rim */}
+      <mesh>
+        <ringGeometry args={[0.98, 1.0, 32]} />
+        <meshBasicMaterial color="#00ff41" transparent opacity={0.6} />
+      </mesh>
+      {/* Grid rings */}
+      <mesh>
+        <ringGeometry args={[0.68, 0.7, 32]} />
+        <meshBasicMaterial color="#00ff41" transparent opacity={0.2} />
+      </mesh>
+      <mesh>
+        <ringGeometry args={[0.38, 0.4, 32]} />
+        <meshBasicMaterial color="#00ff41" transparent opacity={0.2} />
+      </mesh>
+      
+      {/* Crosshair lines */}
+      <mesh position={[0, 0, -0.01]}>
+        <boxGeometry args={[1.9, 0.01, 0.01]} />
+        <meshBasicMaterial color="#00ff41" transparent opacity={0.2} />
+      </mesh>
+      <mesh position={[0, 0, -0.01]}>
+        <boxGeometry args={[0.01, 1.9, 0.01]} />
+        <meshBasicMaterial color="#00ff41" transparent opacity={0.2} />
+      </mesh>
+
+      {/* Sweeper beam */}
+      <group ref={sweepRef}>
+        <mesh position={[0.45, 0, 0]}>
+          <planeGeometry args={[0.9, 0.12]} />
+          <meshBasicMaterial 
+            color="#00ff41" 
+            transparent 
+            opacity={0.35} 
+            side={THREE.DoubleSide} 
+          />
+        </mesh>
+      </group>
+
+      {/* Sector Target Spheres */}
+      {targets.map((t) => {
+        const isActive = activeIdx === t.idx;
+        const isScanned = scannedSet.has(t.idx);
+        const color = isActive ? "#00ff41" : isScanned ? "#00bb33" : "#ff6a00";
+        return (
+          <mesh 
+            key={t.idx}
+            position={t.pos}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectTarget(t.idx);
+            }}
+            onPointerOver={(e) => {
+              document.body.style.cursor = 'pointer';
+            }}
+            onPointerOut={(e) => {
+              document.body.style.cursor = 'crosshair';
+            }}
+          >
+            <sphereGeometry args={[0.065, 16, 16]} />
+            <meshBasicMaterial color={color} />
+            {/* Glowing ring */}
+            <mesh scale={[1.4, 1.4, 1.4]}>
+              <ringGeometry args={[0.08, 0.11, 16]} />
+              <meshBasicMaterial color={color} transparent opacity={0.6} />
+            </mesh>
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
 
 export default function Campaign({ audioEnabled, onCompleteObjective, completedObjectives = [] }) {
   const [activeTarget, setActiveTarget] = useState(null);
@@ -157,32 +248,18 @@ export default function Campaign({ audioEnabled, onCompleteObjective, completedO
       {/* Campaign Layout: Radar Scan Console + side details */}
       <div className="campaign-layout">
         {/* Left: Interactive Sonar Radar Sweeper */}
-        <div className="radar-console military-frame">
-          <div className="radar-screen">
-            <div className="radar-sweep" />
-            <div className="radar-ring-1" />
-            <div className="radar-ring-2" />
-            <div className="radar-crosshair-h" />
-            <div className="radar-crosshair-v" />
-            
-            {/* Blinking Targets */}
-            {RADAR_TARGETS.map(target => {
-              const isActive = activeTarget?.idx === target.idx;
-              const isScanned = scannedSet.has(target.idx);
-              return (
-                <div
-                  key={target.idx}
-                  className={`radar-dot-target ${isActive ? 'active' : ''}`}
-                  style={{ left: target.coords.x, top: target.coords.top }}
-                  onClick={() => handleTargetClick(target)}
-                  onMouseEnter={handleHover}
-                >
-                  <div className="radar-dot-label">
-                    {target.operation} {isScanned ? '✓' : '●'}
-                  </div>
-                </div>
-              );
-            })}
+        <div className="radar-console military-frame" style={{ width: '100%', height: '380px', position: 'relative' }}>
+          <div style={{ width: '280px', height: '280px', position: 'relative' }}>
+            <Canvas camera={{ position: [0, 0, 2.0], fov: 60 }} gl={{ antialias: true }}>
+              <ambientLight intensity={1.0} />
+              <Suspense fallback={null}>
+                <RadarDisk3D 
+                  activeIdx={activeTarget?.idx}
+                  scannedSet={scannedSet}
+                  onSelectTarget={(idx) => handleTargetClick(RADAR_TARGETS[idx])}
+                />
+              </Suspense>
+            </Canvas>
           </div>
           <div style={{
             position: 'absolute',
@@ -192,7 +269,7 @@ export default function Campaign({ audioEnabled, onCompleteObjective, completedO
             color: 'var(--cod-primary)',
             letterSpacing: '1px'
           }}>
-            [ sonar recon: scan red indicators ]
+            [ sonar 3d recon: click orange beacons ]
           </div>
         </div>
 

@@ -1,8 +1,10 @@
 /* ============================================================
    Barracks — Trooper Combat Record & Medal Showcase
    ============================================================ */
-import { useState } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, useGLTF, useAnimations } from '@react-three/drei';
 import CONFIG from '../../config';
 import { playUIHover } from '../../utils/audio';
 
@@ -45,6 +47,29 @@ const MEDALS = [
     desc: 'Awarded for successful deployment and architecture configurations of secure cloud data systems and VPC network infrastructure.'
   }
 ];
+
+function CharacterModel() {
+  const { scene, animations } = useGLTF('https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/models/gltf/Soldier.glb');
+  const ref = useRef();
+  const { actions } = useAnimations(animations, ref);
+
+  useEffect(() => {
+    if (!actions) return;
+    const idleAction = actions['Idle'];
+    if (idleAction) {
+      idleAction.reset().fadeIn(0.2).play();
+    }
+    return () => {
+      if (idleAction) idleAction.fadeOut(0.2);
+    };
+  }, [actions]);
+
+  return (
+    <group ref={ref}>
+      <primitive object={scene} scale={[1.4, 1.4, 1.4]} position={[0, -1.35, 0]} rotation={[0, Math.PI, 0]} />
+    </group>
+  );
+}
 
 export default function Barracks({ audioEnabled, onCompleteObjective, completedObjectives = [] }) {
   const [selectedMedal, setSelectedMedal] = useState(null);
@@ -90,6 +115,30 @@ export default function Barracks({ audioEnabled, onCompleteObjective, completedO
         <div className="trooper-callingcard">
           <div className="callingcard-glitch-grid" />
           <div className="callingcard-name">{CONFIG.player.callsign}</div>
+        </div>
+
+        {/* Interactive 3D Soldier Operative Viewer */}
+        <div style={{ width: '100%', height: '190px', background: 'rgba(2, 6, 2, 0.8)', border: '1px solid var(--cod-border)', margin: '12px 0', position: 'relative', overflow: 'hidden', cursor: 'grab' }}>
+          <Canvas camera={{ position: [0, 0.35, 2.0], fov: 42 }}>
+            <ambientLight intensity={1.0} />
+            <pointLight position={[10, 10, 10]} intensity={1.5} />
+            <Suspense fallback={null}>
+              <CharacterModel />
+            </Suspense>
+            <OrbitControls enableZoom={true} minDistance={1.0} maxDistance={2.8} />
+          </Canvas>
+          <div style={{
+            position: 'absolute',
+            bottom: '6px',
+            right: '8px',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.45rem',
+            color: 'var(--cod-primary)',
+            letterSpacing: '1px',
+            pointerEvents: 'none'
+          }}>
+            [ DRAG TO ROTATE OPERATIVE ]
+          </div>
         </div>
 
         {/* Stats Grid */}

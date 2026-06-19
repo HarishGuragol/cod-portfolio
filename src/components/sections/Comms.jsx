@@ -1,8 +1,10 @@
 /* ============================================================
    Comms — Decryption Hacking Console & Transceiver
    ============================================================ */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import CONFIG from '../../config';
 import { playHackingSound, playObjectiveComplete } from '../../utils/audio';
 
@@ -13,6 +15,48 @@ const CHANNELS = [
   { key: 'twitter', icon: '📢', label: 'Twitter Broadcast', getLink: (v) => v },
   { key: 'medium', icon: '✍️', label: 'Medium Intel Reports', getLink: (v) => v },
 ];
+
+function SatelliteDish3D({ isTransmitting }) {
+  const dishRef = useRef();
+  const signalRef = useRef();
+
+  useFrame((state) => {
+    if (dishRef.current) {
+      dishRef.current.rotation.y = state.clock.elapsedTime * 0.35;
+    }
+    if (signalRef.current) {
+      const scale = 1.0 + (isTransmitting ? Math.sin(state.clock.elapsedTime * 22) * 0.45 : Math.sin(state.clock.elapsedTime * 3) * 0.1);
+      signalRef.current.scale.set(scale, scale, scale);
+    }
+  });
+
+  return (
+    <group position={[0, -0.4, 0]}>
+      <mesh position={[0, 0.1, 0]}>
+        <cylinderGeometry args={[0.04, 0.08, 0.3, 8]} />
+        <meshStandardMaterial color="#333333" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.25, 0]}>
+        <sphereGeometry args={[0.08, 12, 12]} />
+        <meshStandardMaterial color="#555555" metalness={0.9} />
+      </mesh>
+      <group ref={dishRef} position={[0, 0.45, 0]}>
+        <mesh rotation={[0.4, 0, 0]}>
+          <cylinderGeometry args={[0.45, 0.05, 0.15, 16, 1, true]} />
+          <meshStandardMaterial color="#2d3a2d" metalness={0.8} roughness={0.5} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[0, 0.15, -0.22]} rotation={[-0.4, 0, 0]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.35, 8]} />
+          <meshStandardMaterial color="#111111" />
+        </mesh>
+        <mesh ref={signalRef} position={[0, 0.3, -0.38]}>
+          <sphereGeometry args={[0.06, 8, 8]} />
+          <meshBasicMaterial color={isTransmitting ? "#ff6a00" : "#00ff41"} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
 
 export default function Comms({ audioEnabled, onCompleteObjective, completedObjectives = [] }) {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -186,7 +230,29 @@ export default function Comms({ audioEnabled, onCompleteObjective, completedObje
               SECURE DECRYPTION TERMINAL LOGS
             </div>
             
-            <div className="terminal-logs" ref={logContainerRef}>
+            {/* 3D Satellite Dish Viewer */}
+            <div style={{ width: '100%', height: '110px', background: 'rgba(2, 6, 2, 0.8)', border: '1px solid var(--cod-border)', position: 'relative', overflow: 'hidden' }}>
+              <Canvas camera={{ position: [0, 0.2, 1.3], fov: 45 }}>
+                <ambientLight intensity={1.0} />
+                <pointLight position={[5, 5, 5]} intensity={1.0} />
+                <Suspense fallback={null}>
+                  <SatelliteDish3D isTransmitting={isHacking} />
+                </Suspense>
+              </Canvas>
+              <div style={{
+                position: 'absolute',
+                top: '5px',
+                right: '8px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.45rem',
+                color: isHacking ? 'var(--cod-secondary)' : 'var(--cod-primary)',
+                letterSpacing: '1px'
+              }}>
+                STATUS: {isHacking ? 'TRANSMITTING BEACON...' : 'TRANSCEIVER LINK OK'}
+              </div>
+            </div>
+            
+            <div className="terminal-logs" ref={logContainerRef} style={{ height: '130px' }}>
               {logs.map((log, index) => (
                 <div key={index} className={`log-entry ${log.includes('SUCCESS') || log.includes('COMPLETED') ? 'success' : ''}`}>
                   &gt;&gt; {log}

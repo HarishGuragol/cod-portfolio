@@ -1,8 +1,11 @@
 /* ============================================================
    Armory — Interactive Gunsmith Workbench (Call of Duty Style)
    ============================================================ */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { motion } from 'framer-motion';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
 import { playWeaponEquip, playUIClick } from '../../utils/audio';
 
 const WEAPONS = [
@@ -78,6 +81,156 @@ const CAMOS = [
   { id: 'damascus', name: '🌀 DAMASCUS', filter: 'saturate(3) hue-rotate(185deg) brightness(1.1) contrast(1.1) drop-shadow(0 0 10px #00d4ff)', color: '#00d4ff', desc: 'Layered high-carbon steel ripple waves' },
   { id: 'obsidian', name: '🔥 OBSIDIAN', filter: 'brightness(0.18) contrast(3.5) saturate(0.2) drop-shadow(0 0 10px #7000ff)', color: '#7000ff', desc: 'Crystalline glossy volcanic glass shroud' }
 ];
+
+function Weapon3DModel({ weaponId, attachments, camo, isRotating = true }) {
+  const groupRef = useRef();
+
+  useFrame((state) => {
+    if (isRotating && groupRef.current) {
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.25;
+    }
+  });
+
+  const camoConfig = useMemo(() => {
+    switch (camo.id) {
+      case 'olive':
+        return { color: '#3d4d3c', metalness: 0.2, roughness: 0.85 };
+      case 'gold':
+        return { color: '#ffd700', metalness: 0.95, roughness: 0.15, emissive: '#473600', emissiveIntensity: 0.2 };
+      case 'damascus':
+        return { color: '#2b0054', metalness: 0.85, roughness: 0.2, emissive: '#003666', emissiveIntensity: 0.3 };
+      case 'obsidian':
+        return { color: '#09050d', metalness: 0.2, roughness: 0.05 };
+      case 'standard':
+      default:
+        return { color: '#181b1c', metalness: 0.7, roughness: 0.5 };
+    }
+  }, [camo]);
+
+  const hasSuppressor = attachments.muzzle.name !== 'None';
+  const hasOptic = attachments.optic.name !== 'None';
+  const hasGrip = attachments.underbarrel.name !== 'None';
+  const isExtendedMag = attachments.magazine.name.includes('45-Round') || attachments.magazine.name.includes('60-Round');
+
+  return (
+    <group ref={groupRef} position={[0, -0.2, 0]}>
+      {/* 1. Main Receiver Chassis */}
+      <mesh position={[0, 0.05, 0]}>
+        <boxGeometry args={[0.9, 0.22, 0.12]} />
+        <meshStandardMaterial {...camoConfig} />
+      </mesh>
+
+      {/* Pistol Grip */}
+      <mesh position={[-0.2, -0.22, 0]} rotation={[0, 0, -0.3]}>
+        <boxGeometry args={[0.1, 0.32, 0.08]} />
+        <meshStandardMaterial color="#111111" roughness={0.9} />
+      </mesh>
+
+      {/* Trigger Guard */}
+      <mesh position={[-0.05, -0.12, 0]}>
+        <boxGeometry args={[0.12, 0.08, 0.04]} />
+        <meshStandardMaterial color="#222" roughness={0.7} />
+      </mesh>
+
+      {/* 2. Stock */}
+      <mesh position={[-0.7, 0.02, 0]}>
+        {weaponId === 'python' ? (
+          <boxGeometry args={[0.55, 0.18, 0.1]} />
+        ) : (
+          <boxGeometry args={[0.5, 0.15, 0.08]} />
+        )}
+        <meshStandardMaterial {...camoConfig} />
+      </mesh>
+      
+      {/* Stock Butt Pad */}
+      <mesh position={[-0.96, 0.02, 0]}>
+        <boxGeometry args={[0.04, 0.22, 0.09]} />
+        <meshStandardMaterial color="#111111" roughness={0.9} />
+      </mesh>
+
+      {/* 3. Handguard Shroud */}
+      <mesh position={[0.65, 0.05, 0]}>
+        <cylinderGeometry args={[0.08, 0.09, 0.5, 8]} rotation={[0, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#151718" roughness={0.8} />
+      </mesh>
+
+      {/* 4. Barrel */}
+      <mesh position={[1.1, 0.05, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.5, 8]} rotation={[0, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#111111" roughness={0.5} metalness={0.9} />
+      </mesh>
+
+      {/* 5. ATTACHMENT: Muzzle Suppressor */}
+      {hasSuppressor && (
+        <mesh position={[1.45, 0.05, 0]}>
+          <cylinderGeometry args={[0.055, 0.055, 0.32, 10]} rotation={[0, 0, Math.PI / 2]} />
+          <meshStandardMaterial color="#080808" roughness={0.6} metalness={0.8} />
+        </mesh>
+      )}
+
+      {/* 6. ATTACHMENT: Optic Scope */}
+      {hasOptic && (
+        <group position={[0, 0.22, 0]}>
+          <mesh position={[0, -0.04, 0]}>
+            <boxGeometry args={[0.15, 0.05, 0.05]} />
+            <meshStandardMaterial color="#111111" roughness={0.8} />
+          </mesh>
+          {attachments.optic.name.includes('Sniper') ? (
+            <group>
+              <mesh rotation={[0, 0, Math.PI / 2]}>
+                <cylinderGeometry args={[0.07, 0.05, 0.45, 12]} />
+                <meshStandardMaterial color="#222" roughness={0.7} metalness={0.8} />
+              </mesh>
+              <mesh position={[0.22, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                <cylinderGeometry args={[0.065, 0.065, 0.01, 12]} />
+                <meshBasicMaterial color={camo.id === 'gold' ? "#ffd700" : "#ff3300"} transparent opacity={0.6} />
+              </mesh>
+            </group>
+          ) : (
+            <group>
+              <mesh position={[0, 0.04, 0]}>
+                <boxGeometry args={[0.18, 0.1, 0.1]} />
+                <meshStandardMaterial color="#111111" roughness={0.7} wireframe />
+              </mesh>
+              <mesh position={[0.04, 0.04, 0]} rotation={[0, 0, Math.PI / 2]}>
+                <planeGeometry args={[0.07, 0.07]} />
+                <meshBasicMaterial color="#00ff41" transparent opacity={0.8} side={THREE.DoubleSide} />
+              </mesh>
+            </group>
+          )}
+        </group>
+      )}
+
+      {/* 7. ATTACHMENT: Underbarrel Foregrip */}
+      {hasGrip && (
+        <mesh position={[0.65, -0.15, 0]} rotation={[0, 0, 0.15]}>
+          <boxGeometry args={[0.06, 0.18, 0.06]} />
+          <meshStandardMaterial color="#111" roughness={0.9} />
+        </mesh>
+      )}
+
+      {/* 8. ATTACHMENT: Magazine */}
+      {isExtendedMag ? (
+        attachments.magazine.name.includes('Drum') ? (
+          <mesh position={[0.15, -0.22, 0]} rotation={[0, 0, -0.15]}>
+            <cylinderGeometry args={[0.18, 0.18, 0.12, 16]} rotation={[Math.PI / 2, 0, 0]} />
+            <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
+          </mesh>
+        ) : (
+          <mesh position={[0.15, -0.25, 0]} rotation={[0, 0, -0.25]}>
+            <boxGeometry args={[0.08, 0.32, 0.06]} />
+            <meshStandardMaterial color="#1a1a1a" roughness={0.85} />
+          </mesh>
+        )
+      ) : (
+        <mesh position={[0.15, -0.2, 0]} rotation={[0, 0, -0.1]}>
+          <boxGeometry args={[0.08, 0.22, 0.06]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.85} />
+        </mesh>
+      )}
+    </group>
+  );
+}
 
 export default function Armory({ audioEnabled, onCompleteObjective, completedObjectives = [] }) {
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0]);
@@ -279,12 +432,22 @@ export default function Armory({ audioEnabled, onCompleteObjective, completedObj
               <div>MAG: <span style={{ color: '#fff' }}>{attachments.magazine.name}</span></div>
             </div>
 
-            <img
-              src={selectedWeapon.image}
-              alt={selectedWeapon.name}
-              className="blueprint-img"
-              style={{ filter: selectedCamo.filter }}
-            />
+            {/* 3D Interactive Gunsmith customizer viewport */}
+            <div style={{ width: '100%', height: '230px', position: 'relative', overflow: 'hidden', cursor: 'grab' }}>
+              <Canvas camera={{ position: [0, 0, 2.5], fov: 42 }}>
+                <ambientLight intensity={0.9} />
+                <pointLight position={[10, 10, 10]} intensity={1.5} />
+                <pointLight position={[-10, -10, -10]} intensity={0.4} />
+                <Suspense fallback={null}>
+                  <Weapon3DModel 
+                    weaponId={selectedWeapon.id}
+                    attachments={attachments}
+                    camo={selectedCamo}
+                  />
+                </Suspense>
+                <OrbitControls enableZoom={true} minDistance={1.4} maxDistance={3.5} />
+              </Canvas>
+            </div>
 
             {/* Customizer Slots (Interactions) */}
             <div style={{

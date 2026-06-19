@@ -1,8 +1,10 @@
 /* ============================================================
    Multiplayer — Interactive Mission Operations Lobby
    ============================================================ */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Suspense, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import CONFIG from '../../config';
 import { playUIHover, playUIClick, playHackingSound } from '../../utils/audio';
 
@@ -20,6 +22,33 @@ const DRONE_OBSTACLES = [
   { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 2, c: 0 }, { r: 2, c: 1 },
   { r: 2, c: 4 }, { r: 4, c: 1 }, { r: 4, c: 2 }
 ];
+
+function SonarTerrain3D() {
+  const meshRef = useRef();
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.z = state.clock.elapsedTime * 0.15;
+    }
+  });
+
+  return (
+    <group rotation={[-1.1, 0, 0]} scale={[1.3, 1.3, 1.3]}>
+      <mesh ref={meshRef}>
+        <planeGeometry args={[2.0, 2.0, 15, 15]} />
+        <meshBasicMaterial color="#00ff41" wireframe transparent opacity={0.25} />
+      </mesh>
+      <mesh position={[0.3, 0.4, 0.2]}>
+        <coneGeometry args={[0.04, 0.35, 4]} rotation={[Math.PI / 2, 0, 0]} />
+        <meshBasicMaterial color="#ff6a00" />
+      </mesh>
+      <mesh position={[-0.4, -0.2, 0.15]}>
+        <coneGeometry args={[0.04, 0.3, 4]} rotation={[Math.PI / 2, 0, 0]} />
+        <meshBasicMaterial color="#ff6a00" />
+      </mesh>
+    </group>
+  );
+}
 
 export default function Multiplayer({ audioEnabled, onCompleteObjective, completedObjectives = [] }) {
   const [selectedOp, setSelectedOp] = useState(CONFIG.projects[0]);
@@ -302,8 +331,15 @@ export default function Multiplayer({ audioEnabled, onCompleteObjective, complet
             {selectedOp.name !== "Survey-and-Rescue (eYRC)" && 
              selectedOp.name !== "Eye-Need-A-Break" && 
              selectedOp.name !== "Voice-Controlled Robot" && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, fontFamily: 'var(--font-mono)' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>📂</div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, fontFamily: 'var(--font-mono)', width: '100%', height: '100%', justifyContent: 'center' }}>
+                <div style={{ width: '100%', height: '160px', position: 'relative', overflow: 'hidden' }}>
+                  <Canvas camera={{ position: [0, 0, 1.8], fov: 45 }}>
+                    <ambientLight intensity={1.0} />
+                    <Suspense fallback={null}>
+                      <SonarTerrain3D />
+                    </Suspense>
+                  </Canvas>
+                </div>
                 {decProgress > 0 ? (
                   <>
                     <div style={{ fontSize: '0.7rem', color: 'var(--cod-primary)', letterSpacing: '1px', marginBottom: '4px' }}>
@@ -317,7 +353,7 @@ export default function Multiplayer({ audioEnabled, onCompleteObjective, complet
                     </div>
                   </>
                 ) : (
-                  <button className="terminal-action-btn" style={{ fontSize: '0.65rem' }} onClick={startGenericDecryption}>
+                  <button className="terminal-action-btn" style={{ fontSize: '0.65rem', marginTop: '10px' }} onClick={startGenericDecryption}>
                     DECRYPT REPOSITORY LOGS
                   </button>
                 )}

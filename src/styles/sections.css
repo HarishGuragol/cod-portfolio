@@ -792,17 +792,7 @@
 
 /* ── Cinematic Backgrounds ─────────────────────────────────── */
 .section-bg-image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  background-size: cover;
-  background-position: center;
-  filter: brightness(0.2) contrast(1.1) saturate(0.65);
-  animation: kenburns 35s infinite ease-in-out;
-  pointer-events: none;
+  display: none !important;
 }
 
 .section-bg-overlay {
@@ -812,12 +802,9 @@
   width: 100vw;
   height: 100vh;
   z-index: 1;
-  background: 
-    linear-gradient(180deg, rgba(2, 4, 2, 0.95) 0%, rgba(2, 4, 2, 0.6) 50%, rgba(2, 4, 2, 0.95) 100%),
-    radial-gradient(circle, transparent 20%, rgba(2, 4, 2, 0.9) 100%),
-    linear-gradient(90deg, rgba(0, 255, 65, 0.015) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(0, 255, 65, 0.015) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+  background: radial-gradient(circle, rgba(2, 6, 2, 0.45) 0%, rgba(2, 4, 2, 0.85) 100%);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   pointer-events: none;
 }
 
