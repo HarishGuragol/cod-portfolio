@@ -223,35 +223,257 @@ function SearchlightTower({ position, nightVision }) {
           </mesh>
         </group>
       </group>
+      {/* Tower warning beacons */}
+      <TowerBeacon position={[-0.52, 5.5, -0.52]} nightVision={nightVision} />
+      <TowerBeacon position={[0.52, 5.5, 0.52]} nightVision={nightVision} />
+    </group>
+  );
+}
+
+function SteelIBeam({ rotation, color, wireframe }) {
+  const metalness = 0.85;
+  const roughness = 0.35;
+  return (
+    <group rotation={rotation}>
+      {/* Central Web */}
+      <mesh>
+        <boxGeometry args={[0.02, 0.12, 1.35]} />
+        <meshStandardMaterial color={color} roughness={roughness} metalness={metalness} wireframe={wireframe} />
+      </mesh>
+      {/* Flange 1 */}
+      <mesh position={[0, 0.06, 0]}>
+        <boxGeometry args={[0.1, 0.02, 1.35]} />
+        <meshStandardMaterial color={color} roughness={roughness} metalness={metalness} wireframe={wireframe} />
+      </mesh>
+      {/* Flange 2 */}
+      <mesh position={[0, -0.06, 0]}>
+        <boxGeometry args={[0.1, 0.02, 1.35]} />
+        <meshStandardMaterial color={color} roughness={roughness} metalness={metalness} wireframe={wireframe} />
+      </mesh>
     </group>
   );
 }
 
 function TankTrap({ position, nightVision }) {
-  const color = nightVision ? "#041404" : "#2d2d2d";
+  const color = nightVision ? "#041404" : "#3e4245";
   return (
     <group position={position}>
-      {/* 3 Crossed metal girders */}
-      <mesh rotation={[0.7, 0.7, 0]}>
-        <boxGeometry args={[0.08, 0.08, 1.2]} />
-        <meshStandardMaterial color={color} roughness={0.9} metalness={0.7} wireframe={nightVision} />
-      </mesh>
-      <mesh rotation={[-0.7, 0.7, 0]}>
-        <boxGeometry args={[0.08, 0.08, 1.2]} />
-        <meshStandardMaterial color={color} roughness={0.9} metalness={0.7} wireframe={nightVision} />
-      </mesh>
-      <mesh rotation={[0, 0.7, 0.7]}>
-        <boxGeometry args={[0.08, 0.08, 1.2]} />
-        <meshStandardMaterial color={color} roughness={0.9} metalness={0.7} wireframe={nightVision} />
-      </mesh>
+      {/* 3 Crossed steel I-beams */}
+      <SteelIBeam rotation={[0.7, 0.7, 0]} color={color} wireframe={nightVision} />
+      <SteelIBeam rotation={[-0.7, 0.7, 0]} color={color} wireframe={nightVision} />
+      <SteelIBeam rotation={[0, 0.7, 0.7]} color={color} wireframe={nightVision} />
+      
       {/* Central joining gusset plate */}
       <mesh position={[0, 0, 0]} rotation={[0, 0.7, 0]}>
         <boxGeometry args={[0.18, 0.18, 0.18]} />
-        <meshStandardMaterial color={color} roughness={0.8} metalness={0.9} />
+        <meshStandardMaterial color={color} roughness={0.7} metalness={0.9} wireframe={nightVision} />
+      </mesh>
+      {/* Gusset plate brackets */}
+      <mesh position={[0, 0.08, 0]} rotation={[0, Math.PI / 4, 0]}>
+        <boxGeometry args={[0.15, 0.02, 0.15]} />
+        <meshStandardMaterial color={color} roughness={0.7} metalness={0.9} wireframe={nightVision} />
       </mesh>
     </group>
   );
 }
+
+function TowerBeacon({ position, nightVision }) {
+  const beaconRef = useRef();
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (beaconRef.current) {
+      beaconRef.current.intensity = (Math.sin(t * 5.0) > 0) ? (nightVision ? 1.5 : 2.5) : 0;
+    }
+  });
+  return (
+    <group position={position}>
+      <mesh>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color="#ff1111" />
+      </mesh>
+      <pointLight ref={beaconRef} color="#ff1111" distance={8} decay={2} />
+    </group>
+  );
+}
+
+function JerseyBarrier({ position, nightVision }) {
+  const concreteColor = nightVision ? "#081608" : "#8c8e90";
+  const stripesColor = nightVision ? "#00ff41" : "#dca818"; // yellow caution paint stripes
+  const wireframe = nightVision;
+  
+  return (
+    <group position={position}>
+      {/* Base block */}
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[0.5, 0.2, 3.8]} />
+        <meshStandardMaterial color={concreteColor} roughness={0.95} wireframe={wireframe} />
+      </mesh>
+      {/* Sloped mid */}
+      <mesh position={[0, 0.3, 0]}>
+        <boxGeometry args={[0.34, 0.2, 3.8]} />
+        <meshStandardMaterial color={concreteColor} roughness={0.95} wireframe={wireframe} />
+      </mesh>
+      {/* Top stem */}
+      <mesh position={[0, 0.55, 0]}>
+        <boxGeometry args={[0.18, 0.3, 3.8]} />
+        <meshStandardMaterial color={concreteColor} roughness={0.95} wireframe={wireframe} />
+      </mesh>
+      {/* Reflective warning marker or yellow warning stripes on the sides */}
+      {!nightVision && (
+        <group>
+          <mesh position={[0.1, 0.3, 0]}>
+            <boxGeometry args={[0.16, 0.05, 0.4]} />
+            <meshStandardMaterial color={stripesColor} roughness={0.5} />
+          </mesh>
+          <mesh position={[-0.1, 0.3, 0]}>
+            <boxGeometry args={[0.16, 0.05, 0.4]} />
+            <meshStandardMaterial color={stripesColor} roughness={0.5} />
+          </mesh>
+        </group>
+      )}
+    </group>
+  );
+}
+
+function MilitarySign({ position, rotation, title, subtitle, nightVision }) {
+  const postColor = nightVision ? "#081408" : "#444b44";
+  const plateColor = nightVision ? "#020802" : "#212529";
+  const textColor = nightVision ? "#00ff41" : "#ff1100";
+  const wireframe = nightVision;
+  
+  return (
+    <group position={position} rotation={rotation}>
+      {/* Metal Post */}
+      <mesh position={[0, 1.1, 0]}>
+        <cylinderGeometry args={[0.03, 0.04, 2.2, 8]} />
+        <meshStandardMaterial color={postColor} metalness={0.7} roughness={0.4} wireframe={wireframe} />
+      </mesh>
+      {/* Sign Plate */}
+      <mesh position={[0, 1.8, 0.04]}>
+        <boxGeometry args={[1.4, 0.9, 0.03]} />
+        <meshStandardMaterial color={plateColor} metalness={0.8} roughness={0.3} wireframe={wireframe} />
+      </mesh>
+      {/* Sign Border Accent */}
+      <mesh position={[0, 1.8, 0.056]}>
+        <boxGeometry args={[1.32, 0.82, 0.01]} />
+        <meshStandardMaterial color={textColor} wireframe={wireframe} />
+      </mesh>
+      {/* Sign Inner Plate */}
+      <mesh position={[0, 1.8, 0.06]}>
+        <boxGeometry args={[1.3, 0.8, 0.01]} />
+        <meshStandardMaterial color={plateColor} roughness={0.5} />
+      </mesh>
+      {/* Interactive HTML Text */}
+      <Html 
+        position={[0, 1.8, 0.07]} 
+        center 
+        distanceFactor={8} 
+        transform 
+        rotation={[0, 0, 0]}
+      >
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '180px',
+          height: '110px',
+          background: '#1a1d20',
+          border: `3px double ${textColor}`,
+          color: textColor,
+          fontFamily: '"Courier New", Courier, monospace',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          padding: '6px',
+          boxSizing: 'border-box',
+          borderRadius: '4px',
+          opacity: nightVision ? 0.95 : 1,
+          pointerEvents: 'none'
+        }}>
+          <div style={{ fontSize: '12px', letterSpacing: '1px', marginBottom: '4px' }}>
+            {title}
+          </div>
+          <div style={{ 
+            fontSize: '7px', 
+            color: nightVision ? '#00ff41' : '#ffffff', 
+            borderTop: `1px solid ${textColor}`, 
+            paddingTop: '4px',
+            width: '100%'
+          }}>
+            {subtitle}
+          </div>
+        </div>
+      </Html>
+    </group>
+  );
+}
+
+function OverheadFloodlight({ position, nightVision }) {
+  const lightRef = useRef();
+  const metalColor = nightVision ? "#081c08" : "#222522";
+  const beamColor = nightVision ? "#00ff41" : "#ffeedd";
+  
+  return (
+    <group position={position}>
+      {/* Light casing box/cylinder */}
+      <mesh rotation={[0.4, 0, 0]}>
+        <cylinderGeometry args={[0.1, 0.08, 0.25, 8]} />
+        <meshStandardMaterial color={metalColor} roughness={0.6} metalness={0.8} />
+      </mesh>
+      {/* Glowing lens */}
+      <mesh position={[0, -0.12, 0.03]} rotation={[1.1, 0, 0]}>
+        <cylinderGeometry args={[0.09, 0.09, 0.02, 8]} />
+        <meshBasicMaterial color={beamColor} />
+      </mesh>
+      {/* Spotlight casting light onto the entrance lane */}
+      <spotLight
+        ref={lightRef}
+        position={[0, -0.12, 0.03]}
+        color={beamColor}
+        intensity={nightVision ? 3.5 : 6.0}
+        distance={18}
+        angle={0.65}
+        penumbra={0.6}
+        castShadow={false}
+      />
+      {/* Visual volumetric cone */}
+      <mesh position={[0, -3.0, 1.2]} rotation={[0.4, 0, 0]}>
+        <cylinderGeometry args={[0.05, 1.8, 6.0, 16, 1, true]} />
+        <meshBasicMaterial 
+          color={beamColor} 
+          transparent 
+          opacity={nightVision ? 0.07 : 0.12} 
+          side={THREE.DoubleSide} 
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function RazorWire({ position, length, nightVision }) {
+  const wireColor = nightVision ? "#00ff41" : "#555b55";
+  const ringCount = Math.floor(length * 2.5);
+  return (
+    <group position={position}>
+      {/* Horizontal support wires */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[length, 0.01, 0.01]} />
+        <meshStandardMaterial color={wireColor} roughness={0.5} />
+      </mesh>
+      {/* Coils */}
+      {Array.from({ length: ringCount }).map((_, i) => {
+        const xPos = -length / 2 + (i / ringCount) * length;
+        return (
+          <mesh key={i} position={[xPos, 0.15, 0]} rotation={[0, 0.3, 1.2]}>
+            <torusGeometry args={[0.22, 0.012, 6, 12]} />
+            <meshStandardMaterial color={wireColor} roughness={0.4} metalness={0.8} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
 
 const Soldier = forwardRef(({ isWalking, nightVision }, ref) => {
   const { scene, animations } = useGLTF('https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/models/gltf/Soldier.glb');
@@ -393,12 +615,18 @@ function BunkerDoor({ door, isNear, nightVision }) {
 }
 
 function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalking, nightVision, controlsRef }) {
-  const keys = useRef({ w: false, a: false, s: false, d: false });
+  const keys = useRef({ w: false, a: false, s: false, d: false, space: false });
   const soldierRef = useRef();
   
   // Starting position: far back on the road at Z = 45 looking towards the bunker
   const playerX = useRef(0);
+  const playerY = useRef(-1.9); // Ground height
   const playerZ = useRef(45);
+  
+  // Velocities
+  const vx = useRef(0);
+  const vy = useRef(0);
+  const vz = useRef(0);
   
   // Soldier rotation angle
   const yaw = useRef(0);
@@ -481,6 +709,10 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
       if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') keys.current.s = true;
       if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') keys.current.a = true;
       if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') keys.current.d = true;
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault(); // Prevent browser scrolling
+        keys.current.space = true;
+      }
     };
 
     const handleKeyUp = (e) => {
@@ -488,6 +720,7 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
       if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') keys.current.s = false;
       if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') keys.current.a = false;
       if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') keys.current.d = false;
+      if (e.key === ' ' || e.key === 'Spacebar') keys.current.space = false;
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -497,6 +730,54 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [is3DMode]);
+
+  // Collision checking function
+  const checkCollision = (x, z, y) => {
+    const radius = 0.35; // Player bounding sphere radius
+    
+    // 1. Boundary limits
+    const maxW = z <= -2.5 ? (4.2 - radius) : (8.2 - radius);
+    if (x < -maxW || x > maxW) return true;
+    if (z < (-32.5 + radius) || z > (70 - radius)) return true;
+
+    // 2. Gateway pillars (Left & Right concrete portal frame walls)
+    // Left pillar box: X in [-6.0, -3.0], Z in [-2.8, -2.2]
+    // Expanded by player radius: X in [-6.35, -2.65], Z in [-3.15, -1.85]
+    if (x >= -6.35 && x <= -2.65 && z >= -3.15 && z <= -1.85) return true;
+    
+    // Right pillar box: X in [3.0, 6.0], Z in [-2.8, -2.2]
+    // Expanded by player radius: X in [2.65, 6.35], Z in [-3.15, -1.85]
+    if (x >= 2.65 && x <= 6.35 && z >= -3.15 && z <= -1.85) return true;
+
+    // 3. Tank Traps (Radius circle checks)
+    // Tank traps are at X = -8.3 and X = 8.3, and Z = -22, -10, 5, 20, 35, 50, 65.
+    // If the player is in mid-air (y >= -1.4), they can jump over them.
+    if (y < -1.4) {
+      const trapZs = [-22, -10, 5, 20, 35, 50, 65];
+      const trapXs = [-8.3, 8.3];
+      const combinedRadius = 1.05; // Trap radius (0.7) + Player radius (0.35)
+      for (let tz of trapZs) {
+        for (let tx of trapXs) {
+          const dx = x - tx;
+          const dz = z - tz;
+          if (dx * dx + dz * dz < combinedRadius * combinedRadius) {
+            return true;
+          }
+        }
+      }
+    }
+
+    // 4. Center Jersey Barriers (X in [-0.25, 0.25], Z in [-2.0, 70])
+    // Expanded by player radius: X in [-0.6, 0.6]
+    // If the player is in mid-air (y >= -1.3), they can jump over them.
+    if (y < -1.3) {
+      if (x >= -0.6 && x <= 0.6 && z >= -2.0 && z <= 70) {
+        return true;
+      }
+    }
+
+    return false;
+  };
 
   useFrame((state, delta) => {
     if (!is3DMode) {
@@ -518,9 +799,15 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
     const camRight = new THREE.Vector3();
     camRight.crossVectors(camDir, new THREE.Vector3(0, 1, 0)).normalize();
 
-    const moveSpeed = 6.2 * delta;
-    let dx = 0;
-    let dz = 0;
+    // Physics constants
+    const acceleration = 35.0; // units/s^2
+    const friction = 12.0; // sliding friction factor
+    const maxSpeed = 6.5; // units/s
+    const gravity = 22.0; // units/s^2
+    const jumpForce = 8.5; // initial vertical velocity
+
+    let ax = 0;
+    let az = 0;
 
     // Keyboard controls override mouse target
     const keyboardMoving = keys.current.w || keys.current.s || keys.current.a || keys.current.d || virtualDir !== '';
@@ -529,71 +816,117 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
       moveTarget.current = null; // Cancel mouse navigation target
       
       if (keys.current.w || virtualDir === 'UP') {
-        dx += camDir.x * moveSpeed;
-        dz += camDir.z * moveSpeed;
+        ax += camDir.x;
+        az += camDir.z;
       }
       if (keys.current.s || virtualDir === 'DOWN') {
-        dx -= camDir.x * moveSpeed;
-        dz -= camDir.z * moveSpeed;
+        ax -= camDir.x;
+        az -= camDir.z;
       }
       if (keys.current.a || virtualDir === 'LEFT') {
-        dx -= camRight.x * moveSpeed;
-        dz -= camRight.z * moveSpeed;
+        ax -= camRight.x;
+        az -= camRight.z;
       }
       if (keys.current.d || virtualDir === 'RIGHT') {
-        dx += camRight.x * moveSpeed;
-        dz += camRight.z * moveSpeed;
+        ax += camRight.x;
+        az += camRight.z;
+      }
+
+      // Normalize acceleration vector
+      const len = Math.sqrt(ax * ax + az * az);
+      if (len > 0) {
+        ax = (ax / len) * acceleration;
+        az = (az / len) * acceleration;
       }
     } else if (moveTarget.current) {
       // Walk towards mouse target
       const target = moveTarget.current;
-      const toTarget = new THREE.Vector3(target.x - playerX.current, 0, target.z - playerZ.current);
-      const distance = toTarget.length();
+      const toTargetX = target.x - playerX.current;
+      const toTargetZ = target.z - playerZ.current;
+      const dist = Math.sqrt(toTargetX * toTargetX + toTargetZ * toTargetZ);
       
-      if (distance > 0.15) {
-        toTarget.normalize();
-        dx = toTarget.x * moveSpeed;
-        dz = toTarget.z * moveSpeed;
-        
-        // Prevent overshoot
-        if (moveSpeed >= distance) {
-          dx = toTarget.x * distance;
-          dz = toTarget.z * distance;
-          moveTarget.current = null; // Reached!
-        }
+      if (dist > 0.15) {
+        ax = (toTargetX / dist) * acceleration;
+        az = (toTargetZ / dist) * acceleration;
       } else {
         moveTarget.current = null; // Reached!
       }
     }
 
+    // Apply acceleration forces to velocity
+    vx.current += ax * delta;
+    vz.current += az * delta;
+
+    // Apply friction damping
+    const damp = Math.exp(-friction * delta);
+    vx.current *= damp;
+    vz.current *= damp;
+
+    // Cap velocity
+    const currentSpeed = Math.sqrt(vx.current * vx.current + vz.current * vz.current);
+    if (currentSpeed > maxSpeed) {
+      vx.current = (vx.current / currentSpeed) * maxSpeed;
+      vz.current = (vz.current / currentSpeed) * maxSpeed;
+    }
+
+    // --- Jump & Gravity physics ---
+    if (keys.current.space && playerY.current <= -1.9) {
+      vy.current = jumpForce;
+    }
+    // Apply gravity
+    vy.current -= gravity * delta;
+    playerY.current += vy.current * delta;
+    // Ground level clamp
+    if (playerY.current <= -1.9) {
+      playerY.current = -1.9;
+      vy.current = 0;
+    }
+
+    // Calculate candidate next position
+    const nextX = playerX.current + vx.current * delta;
+    const nextZ = playerZ.current + vz.current * delta;
+
+    // Split collision tests to allow sliding along walls
+    let collX = checkCollision(nextX, playerZ.current, playerY.current);
+    let collZ = checkCollision(playerX.current, nextZ, playerY.current);
+
+    if (collX) {
+      vx.current = 0;
+      if (moveTarget.current) moveTarget.current = null;
+    } else {
+      playerX.current = nextX;
+    }
+
+    if (collZ) {
+      vz.current = 0;
+      if (moveTarget.current) moveTarget.current = null;
+    } else {
+      playerZ.current = nextZ;
+    }
+
     // Update walking indicators
-    const isWalking = dx !== 0 || dz !== 0;
+    const isWalking = currentSpeed > 0.15;
     isWalkingRef.current = isWalking;
     if (onUpdateWalking) {
       onUpdateWalking(isWalking);
     }
 
-    // Bounds checking (outdoors allows 8.2 width, interior corridor allows 4.2 width)
-    const maxWalkX = playerZ.current <= -2.5 ? 4.2 : 8.2;
-    playerX.current = Math.max(-maxWalkX, Math.min(maxWalkX, playerX.current + dx));
-    playerZ.current = Math.max(-35, Math.min(70, playerZ.current + dz)); // Z bounds: +70 to -35
-
     // Eye level follow bob
-    const bob = isWalking ? Math.sin(state.clock.elapsedTime * 12) * 0.04 : 0;
+    const bob = isWalking && playerY.current <= -1.9 ? Math.sin(state.clock.elapsedTime * 12) * 0.04 : 0;
 
-    // Rotate soldier character in the direction of movement
+    // Rotate soldier character in the direction of movement velocity
     if (isWalking) {
-      yaw.current = Math.atan2(dx, dz);
+      yaw.current = Math.atan2(vx.current, vz.current);
     }
 
     // Lock OrbitControls target to player coordinates (so camera orbits and follows player)
     if (controlsRef.current) {
-      controlsRef.current.target.set(playerX.current, -1.0 + bob, playerZ.current);
+      controlsRef.current.target.set(playerX.current, playerY.current + 0.9 + bob, playerZ.current);
     }
 
-    // Update soldier position and rotation (feet stand at ground height of -1.9)
+    // Update soldier position and rotation
     if (soldierRef.current) {
-      soldierRef.current.position.set(playerX.current, -1.9, playerZ.current);
+      soldierRef.current.position.set(playerX.current, playerY.current, playerZ.current);
       soldierRef.current.rotation.y = yaw.current;
     }
 
@@ -768,14 +1101,35 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
           <meshStandardMaterial color={nightVision ? "#1a1c1a" : "#282a2b"} roughness={0.85} metalness={0.1} />
         </mesh>
         
-        {/* Yellow center dashed lanes */}
+        {/* Skid marks on the road */}
+        {[-10, 15, 40].map((z, idx) => (
+          <mesh key={`skid-${idx}`} rotation={[-Math.PI / 2, 0, 0.04]} position={[idx % 2 === 0 ? -1.8 : 2.2, -1.89, z]}>
+            <planeGeometry args={[0.32, 6.0]} />
+            <meshBasicMaterial color="#111111" transparent opacity={nightVision ? 0.25 : 0.55} />
+          </mesh>
+        ))}
+
+        {/* Asphalt cracks */}
+        {[
+          { x: -2, z: 12, rot: 0.8, w: 0.02, l: 3.5 },
+          { x: 3, z: -5, rot: -0.5, w: 0.02, l: 4 },
+          { x: -4, z: 32, rot: 1.2, w: 0.02, l: 3 },
+          { x: 1, z: 50, rot: -0.3, w: 0.02, l: 5 },
+        ].map((crack, idx) => (
+          <mesh key={`crack-${idx}`} rotation={[-Math.PI / 2, 0, crack.rot]} position={[crack.x, -1.89, crack.z]}>
+            <planeGeometry args={[crack.w, crack.l]} />
+            <meshBasicMaterial color="#18181a" transparent opacity={nightVision ? 0.35 : 0.65} />
+          </mesh>
+        ))}
+
+        {/* Yellow center dashed lanes on the sides of Jersey barrier */}
         {[-38, -30, -22, -14, -6, 2, 10, 18, 26, 34, 42, 50, 58, 66, 74].map(z => (
           <group key={z}>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-0.1, -1.88, z]}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-0.6, -1.88, z]}>
               <planeGeometry args={[0.1, 2.5]} />
               <meshBasicMaterial color="#ffcc00" />
             </mesh>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.1, -1.88, z]}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.6, -1.88, z]}>
               <planeGeometry args={[0.1, 2.5]} />
               <meshBasicMaterial color="#ffcc00" />
             </mesh>
@@ -792,15 +1146,53 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
           <meshBasicMaterial color="#ffffff" />
         </mesh>
 
-        {/* Concrete Side Guardrails (Fort Zancudo styling) */}
-        <mesh position={[-9, -0.9, 15]}>
-          <boxGeometry args={[0.3, 2, 120]} />
-          <meshStandardMaterial color={nightVision ? "#081008" : "#7d807d"} roughness={0.9} wireframe={nightVision} />
-        </mesh>
-        <mesh position={[9, -0.9, 15]}>
-          <boxGeometry args={[0.3, 2, 120]} />
-          <meshStandardMaterial color={nightVision ? "#081008" : "#7d807d"} roughness={0.9} wireframe={nightVision} />
-        </mesh>
+        {/* Concrete Side Guardrails segmented for high fidelity depth */}
+        {Array.from({ length: 30 }).map((_, i) => {
+          const z = -38 + i * 4.0;
+          return (
+            <group key={`guard-${i}`}>
+              {/* Left shoulder guardrail */}
+              <mesh position={[-8.9, -1.0, z]}>
+                <boxGeometry args={[0.35, 1.8, 3.8]} />
+                <meshStandardMaterial color={nightVision ? "#081008" : "#6c6e70"} roughness={0.9} wireframe={nightVision} />
+              </mesh>
+              {/* Right shoulder guardrail */}
+              <mesh position={[8.9, -1.0, z]}>
+                <boxGeometry args={[0.35, 1.8, 3.8]} />
+                <meshStandardMaterial color={nightVision ? "#081008" : "#6c6e70"} roughness={0.9} wireframe={nightVision} />
+              </mesh>
+            </group>
+          );
+        })}
+
+        {/* Concrete Jersey Barriers down center lane (X = 0) */}
+        {Array.from({ length: 18 }).map((_, i) => {
+          const z = -2.0 + i * 4.0;
+          return <JerseyBarrier key={`jersey-${i}`} position={[0, -1.9, z]} nightVision={nightVision} />;
+        })}
+
+        {/* Warning Signboards along shoulders */}
+        <MilitarySign 
+          position={[-7.8, -1.9, 55]} 
+          rotation={[0, 0.2, 0]} 
+          title="FORT ZANCUDO" 
+          subtitle="MILITARY BASE OUTPOST AHEAD - SPEED LIMIT 15 MPH" 
+          nightVision={nightVision} 
+        />
+        <MilitarySign 
+          position={[7.8, -1.9, 20]} 
+          rotation={[0, -0.3, 0]} 
+          title="WARNING" 
+          subtitle="DEADLY FORCE AUTHORIZED - RESTRICTED MILITARY AREA" 
+          nightVision={nightVision} 
+        />
+        <MilitarySign 
+          position={[-7.8, -1.9, 6]} 
+          rotation={[0, 0.4, 0]} 
+          title="RESTRICTED ENTRY" 
+          subtitle="IDENTIFICATION CARD AND BIOMETRICS SCAN REQUIRED" 
+          nightVision={nightVision} 
+        />
 
         {/* 🌴 Upgraded Stylized 3D Palm Trees (Lining both shoulders) */}
         {[-30, -15, 0, 15, 30, 45, 60, 75].map(z => (
@@ -870,6 +1262,27 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
             <boxGeometry args={[6, 0.8, 0.6]} />
             <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
           </mesh>
+
+          {/* Black/Yellow Hazard Warning Stripes on Arch front face */}
+          <group position={[0, 2.7, 0.31]} rotation={[0, 0, 0]}>
+            {Array.from({ length: 11 }).map((_, i) => {
+              const x = -2.5 + i * 0.5;
+              return (
+                <mesh key={`hazard-${i}`} position={[x, 0, 0]} rotation={[0, 0, -Math.PI / 4]}>
+                  <planeGeometry args={[0.15, 0.75]} />
+                  <meshBasicMaterial color={i % 2 === 0 ? "#ffcc00" : "#111111"} />
+                </mesh>
+              );
+            })}
+          </group>
+
+          {/* Razor security wire coils on top of the side walls */}
+          <RazorWire position={[-4.5, 3.2, 0]} length={3.0} nightVision={nightVision} />
+          <RazorWire position={[4.5, 3.2, 0]} length={3.0} nightVision={nightVision} />
+
+          {/* Overhead spotlights casting real spotlight cones */}
+          <OverheadFloodlight position={[-1.8, 2.7, 0.35]} nightVision={nightVision} />
+          <OverheadFloodlight position={[1.8, 2.7, 0.35]} nightVision={nightVision} />
         </group>
 
         {/* 🏢 INSIDE BUNKER CORRIDOR */}
