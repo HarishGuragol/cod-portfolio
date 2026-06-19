@@ -1,0 +1,1262 @@
+/* ============================================================
+   SECTIONS — Mission content screens
+   ============================================================ */
+
+.section-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: var(--z-content);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 60px var(--space-xl) 80px;
+}
+
+.section-content {
+  width: 100%;
+  max-width: 1100px;
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Section Header ───────────────────────────────────────── */
+.section-header {
+  margin-bottom: var(--space-2xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--cod-border);
+}
+
+.section-header .section-tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cod-primary);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
+
+.section-header .section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 800;
+  color: var(--cod-text-bright);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-shadow: 0 0 20px rgba(255, 106, 0, 0.2);
+}
+
+.section-header .section-subtitle {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--cod-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* ── Back Button ──────────────────────────────────────────── */
+.section-back-btn {
+  position: fixed;
+  top: 50px;
+  left: var(--space-xl);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--cod-text-muted);
+  cursor: pointer;
+  padding: 6px 12px;
+  border: 1px solid var(--cod-border);
+  background: rgba(0, 0, 0, 0.7);
+  transition: all var(--transition-fast);
+  z-index: calc(var(--z-content) + 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 2px;
+}
+
+.section-back-btn:hover {
+  border-color: var(--cod-primary);
+  color: var(--cod-primary);
+  background: rgba(255, 106, 0, 0.05);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CAMPAIGN — About / Dossier
+   ═══════════════════════════════════════════════════════════ */
+
+.dossier {
+  position: relative;
+  padding: var(--space-xl);
+  border: 1px solid var(--cod-border);
+  background: rgba(10, 10, 10, 0.9);
+}
+
+.dossier-header {
+  display: flex;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-xl);
+  align-items: flex-start;
+}
+
+.dossier-photo {
+  width: 160px;
+  height: 200px;
+  border: 2px solid var(--cod-border);
+  background: var(--cod-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.dossier-photo .photo-placeholder {
+  font-size: 4rem;
+  color: var(--cod-text-dim);
+}
+
+.dossier-photo::after {
+  content: 'CLASSIFIED';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--cod-primary);
+  color: var(--cod-bg);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 3px;
+  text-align: center;
+  padding: 2px;
+}
+
+.dossier-details {
+  flex: 1;
+}
+
+.dossier-field {
+  display: flex;
+  margin-bottom: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.dossier-field .field-label {
+  color: var(--cod-text-muted);
+  width: 140px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.65rem;
+  padding-top: 2px;
+}
+
+.dossier-field .field-value {
+  color: var(--cod-text);
+}
+
+.dossier-field .field-value.highlight {
+  color: var(--cod-primary);
+}
+
+.dossier-bio {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--cod-border);
+}
+
+.dossier-bio .bio-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cod-text-muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+}
+
+.dossier-bio .bio-text {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--cod-text);
+  line-height: 1.8;
+}
+
+/* Experience timeline */
+.experience-timeline {
+  margin-top: var(--space-2xl);
+}
+
+.timeline-item {
+  padding: var(--space-lg);
+  border: 1px solid var(--cod-border);
+  background: rgba(10, 10, 10, 0.8);
+  margin-bottom: var(--space-md);
+  position: relative;
+  transition: all var(--transition-base);
+}
+
+.timeline-item:hover {
+  border-color: var(--cod-primary-dim);
+  background: rgba(255, 106, 0, 0.02);
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--cod-primary);
+}
+
+.timeline-operation {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-primary);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
+
+.timeline-role {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--cod-text-bright);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.timeline-company {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--cod-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.timeline-period {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--cod-warning);
+  margin-bottom: var(--space-sm);
+}
+
+.timeline-description {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--cod-text);
+  line-height: 1.6;
+  margin-bottom: var(--space-sm);
+}
+
+.timeline-highlights {
+  list-style: none;
+  padding-left: var(--space-md);
+}
+
+.timeline-highlights li {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--cod-text);
+  margin-bottom: var(--space-xs);
+  position: relative;
+  padding-left: var(--space-md);
+}
+
+.timeline-highlights li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--cod-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MULTIPLAYER — Projects Grid
+   ═══════════════════════════════════════════════════════════ */
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-lg);
+}
+
+.project-card {
+  border: 1px solid var(--cod-border);
+  background: rgba(10, 10, 10, 0.9);
+  padding: var(--space-lg);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--cod-primary), var(--cod-primary-glow));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-base);
+}
+
+.project-card:hover {
+  border-color: var(--cod-primary-dim);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(255, 106, 0, 0.1);
+}
+
+.project-card:hover::before {
+  transform: scaleX(1);
+}
+
+.project-codename {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-primary);
+  letter-spacing: 3px;
+  margin-bottom: var(--space-xs);
+}
+
+.project-name {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--cod-text-bright);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+}
+
+.project-description {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--cod-text-muted);
+  line-height: 1.6;
+  margin-bottom: var(--space-md);
+}
+
+.project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.project-tech-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 2px 8px;
+  border: 1px solid var(--cod-border);
+  color: var(--cod-accent);
+  letter-spacing: 1px;
+}
+
+.project-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--cod-border);
+}
+
+.project-status {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.project-status.complete {
+  color: var(--cod-secondary);
+}
+
+.project-status.active {
+  color: var(--cod-warning);
+}
+
+.project-difficulty {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  padding: 2px 6px;
+  letter-spacing: 1px;
+}
+
+.project-difficulty.veteran {
+  color: var(--cod-primary);
+  border: 1px solid var(--cod-primary-dim);
+}
+
+.project-difficulty.hardened {
+  color: var(--cod-warning);
+  border: 1px solid rgba(255, 170, 0, 0.3);
+}
+
+.project-difficulty.legendary {
+  color: var(--cod-danger);
+  border: 1px solid rgba(255, 0, 68, 0.3);
+}
+
+.project-links {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.project-link {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cod-accent);
+  padding: 4px 10px;
+  border: 1px solid var(--cod-accent-dim);
+  transition: all var(--transition-fast);
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.project-link:hover {
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--cod-text-bright);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ARMORY — Skills / Loadout
+   ═══════════════════════════════════════════════════════════ */
+
+.armory-categories {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.armory-category {
+  margin-bottom: var(--space-lg);
+}
+
+.armory-category-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--cod-primary);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--cod-border);
+}
+
+.armory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-md);
+}
+
+.skill-card {
+  padding: var(--space-md);
+  border: 1px solid var(--cod-border);
+  background: rgba(10, 10, 10, 0.8);
+  transition: all var(--transition-base);
+}
+
+.skill-card:hover {
+  border-color: var(--cod-primary-dim);
+  background: rgba(255, 106, 0, 0.02);
+}
+
+.skill-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.skill-name {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--cod-text-bright);
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.skill-name .skill-icon {
+  font-size: 1.2rem;
+}
+
+.skill-proficiency-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--cod-primary);
+}
+
+.skill-bar-container {
+  width: 100%;
+  height: 4px;
+  background: var(--cod-surface);
+  overflow: hidden;
+}
+
+.skill-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cod-primary), var(--cod-primary-glow));
+  transition: width 1s ease;
+  box-shadow: 0 0 8px rgba(255, 106, 0, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BARRACKS — Education / Training
+   ═══════════════════════════════════════════════════════════ */
+
+.training-records {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.training-record {
+  padding: var(--space-xl);
+  border: 1px solid var(--cod-border);
+  background: rgba(10, 10, 10, 0.9);
+  position: relative;
+}
+
+.training-record::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--cod-warning);
+}
+
+.training-program {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-warning);
+  letter-spacing: 3px;
+  margin-bottom: var(--space-sm);
+}
+
+.training-degree {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--cod-text-bright);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.training-field {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--cod-text);
+  margin-bottom: var(--space-xs);
+}
+
+.training-institution {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--cod-text-muted);
+}
+
+.training-period {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--cod-primary);
+  margin-top: var(--space-sm);
+}
+
+.training-gpa {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--cod-secondary);
+  margin-top: var(--space-xs);
+}
+
+/* Certifications */
+.cert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.cert-card {
+  padding: var(--space-md);
+  border: 1px solid var(--cod-border);
+  background: rgba(10, 10, 10, 0.8);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  transition: all var(--transition-base);
+}
+
+.cert-card:hover {
+  border-color: var(--cod-warning);
+}
+
+.cert-badge {
+  font-size: 2rem;
+}
+
+.cert-info {
+  flex: 1;
+}
+
+.cert-name {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--cod-text-bright);
+  letter-spacing: 1px;
+}
+
+.cert-year {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cod-text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMMS — Contact
+   ═══════════════════════════════════════════════════════════ */
+
+.comms-terminal {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.comms-screen {
+  border: 1px solid var(--cod-border);
+  background: rgba(10, 10, 10, 0.95);
+  padding: var(--space-xl);
+}
+
+.comms-screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--cod-border);
+  margin-bottom: var(--space-xl);
+}
+
+.comms-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.comms-status .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cod-secondary);
+  box-shadow: 0 0 8px var(--cod-secondary);
+  animation: pulse-glow 2s infinite;
+}
+
+.comms-status .status-text {
+  color: var(--cod-secondary);
+  letter-spacing: 2px;
+}
+
+.comms-frequency {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-text-dim);
+  letter-spacing: 2px;
+}
+
+.comms-channels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.comms-channel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--cod-border);
+  background: rgba(20, 20, 20, 0.5);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.comms-channel:hover {
+  border-color: var(--cod-primary);
+  background: rgba(255, 106, 0, 0.05);
+  transform: translateX(6px);
+}
+
+.comms-channel-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  text-align: center;
+}
+
+.comms-channel-info {
+  flex: 1;
+}
+
+.comms-channel-label {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--cod-text-bright);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.comms-channel-value {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--cod-text-muted);
+}
+
+.comms-channel-arrow {
+  color: var(--cod-text-dim);
+  font-size: 1.2rem;
+  transition: all var(--transition-fast);
+}
+
+.comms-channel:hover .comms-channel-arrow {
+  color: var(--cod-primary);
+  transform: translateX(4px);
+}
+
+/* ── Section Transition Flash ─────────────────────────────── */
+@keyframes section-flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.section-flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--cod-text-bright);
+  z-index: 999;
+  pointer-events: none;
+  animation: section-flash 0.3s ease forwards;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .section-container {
+    padding: 50px var(--space-md) 70px;
+  }
+
+  .dossier-header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dossier-field {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .dossier-field .field-label {
+    width: auto;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .armory-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cert-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-back-btn {
+    top: 45px;
+    left: var(--space-md);
+  }
+}
+
+/* ── Cinematic Backgrounds ─────────────────────────────────── */
+.section-bg-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.2) contrast(1.1) saturate(0.65);
+  animation: kenburns 35s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.section-bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  background: 
+    linear-gradient(180deg, rgba(2, 4, 2, 0.95) 0%, rgba(2, 4, 2, 0.6) 50%, rgba(2, 4, 2, 0.95) 100%),
+    radial-gradient(circle, transparent 20%, rgba(2, 4, 2, 0.9) 100%),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.015) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0, 255, 65, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+  pointer-events: none;
+}
+
+@keyframes kenburns {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.08) translate(1.5%, -1%); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+
+/* ── Armory Gunsmith Revamp ───────────────────────────────── */
+.gunsmith-workbench {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+}
+
+.weapons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.weapon-select-card {
+  padding: 12px;
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid var(--cod-border);
+  color: var(--cod-text);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all var(--transition-base);
+}
+
+.weapon-select-card:hover {
+  background: rgba(0, 255, 65, 0.05);
+  border-color: var(--cod-primary);
+  transform: translateX(4px);
+}
+
+.weapon-select-card.selected {
+  background: rgba(0, 255, 65, 0.1);
+  border-color: var(--cod-primary);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.15);
+}
+
+.weapon-select-card .weapon-cat {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--cod-text-muted);
+  display: block;
+}
+
+.weapon-select-card .weapon-name {
+  font-size: 1.1rem;
+  color: var(--cod-text-bright);
+}
+
+.weapon-select-card.selected .weapon-name {
+  color: var(--cod-primary);
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+.gunsmith-display {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-lg);
+}
+
+.gunsmith-main-panel {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--space-lg);
+  background: rgba(10, 10, 10, 0.9);
+  border: 1px solid var(--cod-border);
+  padding: var(--space-xl);
+  min-height: 400px;
+}
+
+.weapon-blueprint-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 1px solid var(--cod-border);
+  padding-right: var(--space-lg);
+}
+
+.blueprint-grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.blueprint-img {
+  max-width: 90%;
+  max-height: 220px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.4));
+  animation: weapon-float 6s infinite ease-in-out;
+}
+
+@keyframes weapon-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.blueprint-codename {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-secondary);
+  letter-spacing: 2px;
+}
+
+.weapon-specs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.weapon-specs-header {
+  border-bottom: 1px solid var(--cod-border);
+  padding-bottom: 8px;
+}
+
+.weapon-specs-title {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  color: var(--cod-text-bright);
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.weapon-specs-desc {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--cod-text-muted);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.weapon-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.weapon-stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weapon-stat-info {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-text-dim);
+}
+
+.weapon-stat-bar {
+  height: 5px;
+  background: var(--cod-surface);
+  position: relative;
+  overflow: hidden;
+}
+
+.weapon-stat-fill {
+  height: 100%;
+  background: var(--cod-primary);
+  box-shadow: 0 0 6px var(--cod-primary);
+  transition: width 0.6s cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+
+.weapon-equip-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 2px solid var(--cod-secondary);
+  color: var(--cod-secondary);
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: center;
+  font-weight: bold;
+}
+
+.weapon-equip-btn:hover {
+  background: var(--cod-secondary);
+  color: #020402;
+  box-shadow: 0 0 20px rgba(255, 106, 0, 0.4);
+}
+
+.weapon-equip-btn.equipped {
+  border-color: var(--cod-primary);
+  color: var(--cod-primary);
+  background: rgba(0, 255, 65, 0.08);
+}
+
+.weapon-equip-btn.equipped:hover {
+  background: var(--cod-primary);
+  color: #020402;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+}
+
+/* ── Comms Hacking Console Revamp ─────────────────────────── */
+.hacking-terminal {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  background: rgba(4, 8, 4, 0.95);
+  border: 1px solid var(--cod-border);
+  padding: var(--space-xl);
+  font-family: var(--font-mono);
+  box-shadow: 0 0 30px rgba(0, 255, 65, 0.05);
+}
+
+.terminal-header-info {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--cod-border);
+  padding-bottom: 12px;
+  font-size: 0.65rem;
+  color: var(--cod-text-dim);
+}
+
+.terminal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+}
+
+.terminal-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.terminal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.terminal-input-group label {
+  font-size: 0.55rem;
+  color: var(--cod-primary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.terminal-input-group input,
+.terminal-input-group textarea {
+  background: rgba(2, 4, 2, 0.7);
+  border: 1px solid var(--cod-border);
+  color: var(--cod-text-bright);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.terminal-input-group input:focus,
+.terminal-input-group textarea:focus {
+  border-color: var(--cod-primary);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+}
+
+.terminal-action-btn {
+  background: transparent;
+  border: 2px solid var(--cod-primary);
+  color: var(--cod-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 10px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  font-weight: bold;
+  transition: all var(--transition-base);
+}
+
+.terminal-action-btn:hover {
+  background: var(--cod-primary);
+  color: #020402;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+}
+
+.terminal-logs {
+  background: rgba(2, 4, 2, 0.9);
+  border: 1px solid var(--cod-border);
+  padding: var(--space-md);
+  height: 250px;
+  overflow-y: auto;
+  font-size: 0.6rem;
+  color: var(--cod-primary-glow);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-entry {
+  opacity: 0.9;
+}
+
+.log-entry.error {
+  color: var(--cod-danger);
+}
+
+.log-entry.success {
+  color: var(--cod-secondary);
+}
+
+.hacking-progress-bar {
+  height: 3px;
+  background: var(--cod-surface);
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hacking-progress-fill {
+  height: 100%;
+  background: var(--cod-primary);
+  width: 0%;
+  transition: width 0.1s ease;
+  box-shadow: 0 0 8px var(--cod-primary);
+}
+
+/* ── Multiplayer Dossier Drawer ───────────────────────────── */
+.dossier-drawer {
+  background: rgba(4, 8, 4, 0.95);
+  border: 1px solid var(--cod-secondary);
+  margin-top: var(--space-md);
+  padding: var(--space-lg);
+  animation: slide-down 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);
+  border-left: 3px solid var(--cod-secondary);
+  font-family: var(--font-mono);
+  grid-column: 1 / -1;
+}
+
+@keyframes slide-down {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 106, 0, 0.3);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.drawer-title {
+  color: var(--cod-secondary);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.drawer-codename {
+  color: var(--cod-text-dim);
+  font-size: 0.6rem;
+}
+
+.drawer-content {
+  font-size: 0.75rem;
+  color: var(--cod-text);
+  line-height: 1.6;
+}
+
+.drawer-specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+  border-top: 1px solid var(--cod-border);
+  padding-top: 12px;
+}
+
+.spec-column-title {
+  font-size: 0.55rem;
+  color: var(--cod-primary);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.spec-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.spec-list li {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spec-list li::before {
+  content: '▪';
+  color: var(--cod-primary);
+}
+
+@media (max-width: 900px) {
+  .gunsmith-workbench {
+    grid-template-columns: 1fr;
+  }
+  .gunsmith-main-panel {
+    grid-template-columns: 1fr;
+  }
+  .weapon-blueprint-view {
+    border-right: none;
+    border-bottom: 1px solid var(--cod-border);
+    padding-right: 0;
+    padding-bottom: var(--space-md);
+  }
+  .terminal-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

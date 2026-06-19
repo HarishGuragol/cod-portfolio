@@ -1,0 +1,378 @@
+/* ============================================================
+   DESIGN SYSTEM — Military Black/Green/Orange Tactical Theme
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Teko:wght@300;400;500;600;700&family=Black+Ops+One&display=swap');
+
+/* ── CSS Variables / Design Tokens ───────────────────────── */
+:root {
+  /* Military Green Palette */
+  --cod-primary: #00ff41;
+  --cod-primary-glow: #33ff66;
+  --cod-primary-dim: #00aa2a;
+  --cod-primary-ultra-dim: #005515;
+  --cod-secondary: #ff6a00;
+  --cod-secondary-glow: #ff8c33;
+  --cod-secondary-dim: #cc5500;
+  --cod-danger: #ff0044;
+  --cod-warning: #ffaa00;
+  --cod-accent: #00d4ff;
+  --cod-accent-dim: #0099bb;
+  
+  /* Dark Military Surfaces */
+  --cod-bg: #020402;
+  --cod-bg-alt: #040804;
+  --cod-surface: #081008;
+  --cod-surface-light: #0c180c;
+  --cod-surface-lighter: #102010;
+  --cod-border: #1a3a1a;
+  --cod-border-light: #2a5a2a;
+  --cod-border-bright: #3a7a3a;
+  
+  /* Text — Green-tinted */
+  --cod-text: #b8d8b8;
+  --cod-text-muted: #4a7a4a;
+  --cod-text-bright: #e8ffe8;
+  --cod-text-dim: #2a4a2a;
+  
+  /* Typography */
+  --font-display: 'Black Ops One', 'Orbitron', sans-serif;
+  --font-heading: 'Teko', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  
+  /* Borders */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Z-Index Layers */
+  --z-scene: 0;
+  --z-content: 10;
+  --z-hud: 100;
+  --z-menu: 200;
+  --z-boot: 300;
+  --z-overlay: 400;
+}
+
+/* ── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--cod-bg);
+  color: var(--cod-text);
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  cursor: crosshair;
+  user-select: none;
+}
+
+a {
+  color: var(--cod-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--cod-primary-glow);
+  text-shadow: 0 0 8px var(--cod-primary);
+}
+
+/* Custom Scrollbar — Green themed */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cod-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cod-primary-dim);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cod-primary);
+  box-shadow: 0 0 6px var(--cod-primary);
+}
+
+/* ── Scanline Overlay — More visible ──────────────────────── */
+.scanline-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: var(--z-overlay);
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 65, 0.02) 0px,
+    rgba(0, 255, 65, 0.02) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* ── Vignette Overlay — Stronger, green-tinted ────────────── */
+.vignette-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: calc(var(--z-overlay) - 1);
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(0, 8, 0, 0.7) 100%
+  );
+}
+
+/* ── Night Vision Mode ────────────────────────────────────── */
+.night-vision-active {
+  filter: hue-rotate(0deg) saturate(2) brightness(1.3) contrast(1.2);
+}
+
+.night-vision-active .vignette-overlay {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(0, 40, 0, 0.8) 100%
+  );
+}
+
+/* ── CRT Flicker ──────────────────────────────────────────── */
+@keyframes crt-flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 1; }
+  10% { opacity: 0.98; }
+  15% { opacity: 1; }
+  50% { opacity: 0.99; }
+  80% { opacity: 1; }
+  90% { opacity: 0.98; }
+  100% { opacity: 1; }
+}
+
+.crt-flicker {
+  animation: crt-flicker 4s infinite;
+}
+
+/* ── Glitch Text Effect — GREEN themed ───────────────────── */
+@keyframes glitch-1 {
+  0% { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 2px); }
+  20% { clip-path: inset(60% 0 10% 0); transform: translate(3px, -1px); }
+  40% { clip-path: inset(40% 0 30% 0); transform: translate(-2px, 1px); }
+  60% { clip-path: inset(80% 0 5% 0); transform: translate(1px, -2px); }
+  80% { clip-path: inset(10% 0 70% 0); transform: translate(2px, 1px); }
+  100% { clip-path: inset(30% 0 50% 0); transform: translate(-1px, -1px); }
+}
+
+@keyframes glitch-2 {
+  0% { clip-path: inset(70% 0 10% 0); transform: translate(3px, -2px); }
+  20% { clip-path: inset(10% 0 70% 0); transform: translate(-3px, 1px); }
+  40% { clip-path: inset(50% 0 20% 0); transform: translate(2px, -1px); }
+  60% { clip-path: inset(20% 0 60% 0); transform: translate(-1px, 2px); }
+  80% { clip-path: inset(60% 0 20% 0); transform: translate(-2px, -1px); }
+  100% { clip-path: inset(30% 0 40% 0); transform: translate(1px, 1px); }
+}
+
+.glitch-text {
+  position: relative;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch-text::before {
+  color: var(--cod-secondary);
+  animation: glitch-1 3s infinite linear alternate-reverse;
+  opacity: 0.7;
+}
+
+.glitch-text::after {
+  color: var(--cod-primary);
+  animation: glitch-2 2s infinite linear alternate-reverse;
+  opacity: 0.7;
+}
+
+/* ── Pulse Glow — GREEN ───────────────────────────────────── */
+@keyframes pulse-glow {
+  0%, 100% { 
+    text-shadow: 0 0 10px var(--cod-primary), 0 0 20px var(--cod-primary), 0 0 40px var(--cod-primary), 0 0 80px var(--cod-primary-dim);
+    opacity: 1;
+  }
+  50% { 
+    text-shadow: 0 0 5px var(--cod-primary), 0 0 10px var(--cod-primary-dim);
+    opacity: 0.7;
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5), inset 0 0 10px rgba(0, 255, 65, 0.1);
+    border-color: var(--cod-primary);
+  }
+  50% {
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.2), inset 0 0 5px rgba(0, 255, 65, 0.05);
+    border-color: var(--cod-primary-dim);
+  }
+}
+
+/* ── Typing Cursor ────────────────────────────────────────── */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typing-cursor::after {
+  content: '█';
+  animation: blink-cursor 0.8s infinite;
+  color: var(--cod-primary);
+  margin-left: 2px;
+}
+
+/* ── Fade Animations ──────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Military Corner Brackets — GREEN ─────────────────────── */
+.military-frame {
+  position: relative;
+  border: 1px solid var(--cod-border);
+}
+
+.military-frame::before,
+.military-frame::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--cod-primary);
+  border-style: solid;
+}
+
+.military-frame::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.military-frame::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+/* ── Classified Stamp ─────────────────────────────────────── */
+.classified-stamp {
+  position: relative;
+}
+
+.classified-stamp::after {
+  content: 'TOP SECRET';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 900;
+  color: rgba(255, 0, 68, 0.08);
+  letter-spacing: 10px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Targeting Reticle Cursor ─────────────────────────────── */
+@keyframes rotate-reticle {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── Selection ────────────────────────────────────────────── */
+::selection {
+  background: var(--cod-primary);
+  color: var(--cod-bg);
+}
+
+/* ── Section transition ───────────────────────────────────── */
+@keyframes section-flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Global background grid pattern ──────────────────────── */
+.app-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-root::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(90deg, rgba(0, 255, 65, 0.015) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0, 255, 65, 0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 1;
+}

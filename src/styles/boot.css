@@ -1,0 +1,215 @@
+/* ============================================================
+   BOOT SCREEN — Redesigned with green military theme
+   ============================================================ */
+
+.boot-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--cod-bg);
+  z-index: var(--z-boot);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Background grid */
+.boot-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(90deg, rgba(0, 255, 65, 0.02) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0, 255, 65, 0.02) 1px, transparent 1px);
+  background-size: 30px 30px;
+  z-index: 0;
+}
+
+/* Terminal text area */
+.boot-terminal {
+  position: absolute;
+  top: var(--space-xl);
+  left: var(--space-xl);
+  right: var(--space-xl);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--cod-primary);
+  line-height: 1.6;
+  max-height: 40vh;
+  overflow: hidden;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.boot-terminal .boot-line {
+  opacity: 0;
+  animation: fade-in 0.3s forwards;
+}
+
+.boot-terminal .boot-line .prefix {
+  color: var(--cod-secondary);
+  margin-right: 8px;
+}
+
+.boot-terminal .boot-line .timestamp {
+  color: var(--cod-text-dim);
+  margin-right: 12px;
+  font-size: 0.62rem;
+}
+
+/* Center content */
+.boot-center {
+  text-align: center;
+  z-index: 2;
+}
+
+.boot-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  font-weight: 900;
+  color: var(--cod-primary);
+  letter-spacing: 12px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
+  text-shadow: 
+    0 0 30px rgba(0, 255, 65, 0.6),
+    0 0 60px rgba(0, 255, 65, 0.3),
+    0 0 120px rgba(0, 255, 65, 0.15);
+}
+
+.boot-subtitle {
+  font-family: var(--font-heading);
+  font-size: clamp(1rem, 2.5vw, 1.6rem);
+  color: var(--cod-secondary);
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-3xl);
+  text-shadow: 0 0 15px rgba(255, 106, 0, 0.5);
+}
+
+/* Press Start prompt */
+.boot-prompt {
+  font-family: var(--font-display);
+  font-size: clamp(0.7rem, 1.8vw, 1rem);
+  color: var(--cod-primary);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  animation: pulse-glow 2s infinite ease-in-out;
+  cursor: pointer;
+  padding: var(--space-md) var(--space-xl);
+  border: 1px solid var(--cod-primary);
+  transition: all var(--transition-base);
+  position: relative;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2), inset 0 0 20px rgba(0, 255, 65, 0.05);
+}
+
+.boot-prompt:hover {
+  background: rgba(0, 255, 65, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(0, 255, 65, 0.3), inset 0 0 30px rgba(0, 255, 65, 0.1);
+}
+
+/* Loading bar */
+.boot-progress-container {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(400px, 80vw);
+  z-index: 1;
+}
+
+.boot-progress-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cod-text-muted);
+  margin-bottom: var(--space-xs);
+  display: flex;
+  justify-content: space-between;
+}
+
+.boot-progress-label span:last-child {
+  color: var(--cod-primary);
+}
+
+.boot-progress-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--cod-surface);
+  border-radius: 1px;
+  overflow: hidden;
+  border: 1px solid var(--cod-border);
+}
+
+.boot-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cod-primary-dim), var(--cod-primary));
+  border-radius: 1px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px var(--cod-primary), 0 0 20px rgba(0, 255, 65, 0.3);
+}
+
+/* Version info */
+.boot-version {
+  position: absolute;
+  bottom: var(--space-xl);
+  left: var(--space-xl);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-text-dim);
+  z-index: 1;
+}
+
+.boot-classification {
+  position: absolute;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cod-danger);
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px rgba(255, 0, 68, 0.5);
+  z-index: 1;
+}
+
+/* Corner decorations */
+.boot-corner {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-color: var(--cod-primary-dim);
+  border-style: solid;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.boot-corner.top-left {
+  top: 20px;
+  left: 20px;
+  border-width: 2px 0 0 2px;
+}
+
+.boot-corner.top-right {
+  top: 20px;
+  right: 20px;
+  border-width: 2px 2px 0 0;
+}
+
+.boot-corner.bottom-left {
+  bottom: 20px;
+  left: 20px;
+  border-width: 0 0 2px 2px;
+}
+
+.boot-corner.bottom-right {
+  bottom: 20px;
+  right: 20px;
+  border-width: 0 2px 2px 0;
+}
