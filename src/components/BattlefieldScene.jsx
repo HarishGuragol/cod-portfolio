@@ -1,5 +1,5 @@
 /* ============================================================
-   BattlefieldScene — 3D Outdoor Road & Bunker Hallway Walkthrough
+   BattlefieldScene — GTA 5 Los Santos & Special Ops Night Vision
    ============================================================ */
 import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
@@ -14,7 +14,7 @@ const DOORS = [
   { id: 'comms', label: 'COMMS TRANSCEIVER', x: 0, z: -28, rotY: 0 }
 ];
 
-function Embers({ count = 300 }) {
+function Embers({ count = 200, nightVision }) {
   const meshRef = useRef();
   
   const [positions, velocities, colors, sizes] = useMemo(() => {
@@ -33,15 +33,22 @@ function Embers({ count = 300 }) {
       vel[i3 + 1] = Math.random() * 0.008 + 0.002;
       vel[i3 + 2] = (Math.random() - 0.5) * 0.005;
       
-      col[i3] = 0.0;
-      col[i3 + 1] = 0.8 + Math.random() * 0.2;
-      col[i3 + 2] = 0.1 + Math.random() * 0.1;
+      // Warm golden particles for daytime, neon green for NV
+      if (nightVision) {
+        col[i3] = 0.0;
+        col[i3 + 1] = 0.8 + Math.random() * 0.2;
+        col[i3 + 2] = 0.1;
+      } else {
+        col[i3] = 1.0;
+        col[i3 + 1] = 0.8 + Math.random() * 0.2;
+        col[i3 + 2] = 0.4;
+      }
       
       siz[i] = Math.random() * 2 + 1;
     }
     
     return [pos, vel, col, siz];
-  }, [count]);
+  }, [count, nightVision]);
   
   useFrame(() => {
     if (!meshRef.current) return;
@@ -64,7 +71,7 @@ function Embers({ count = 300 }) {
   });
   
   return (
-    <points ref={meshRef}>
+    <points ref={meshRef} key={`${count}-${nightVision}`}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
         <bufferAttribute attach="attributes-color" count={count} array={colors} itemSize={3} />
@@ -73,8 +80,8 @@ function Embers({ count = 300 }) {
       <pointsMaterial
         vertexColors
         transparent
-        opacity={0.6}
-        size={0.05}
+        opacity={nightVision ? 0.6 : 0.4}
+        size={0.06}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthWrite={false}
@@ -83,58 +90,79 @@ function Embers({ count = 300 }) {
   );
 }
 
-function DistantExplosions() {
-  const light1 = useRef();
-  const light2 = useRef();
-  
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    if (light1.current) light1.current.intensity = (Math.sin(t * 0.6) * 0.5 + 0.5) * 1.5;
-    if (light2.current) light2.current.intensity = (Math.sin(t * 1.1 + 1.5) * 0.5 + 0.5) * 1.2;
-  });
+function PalmTree({ position, nightVision }) {
+  const trunkColor = nightVision ? "#041504" : "#4a321a";
+  const leafColor = nightVision ? "#00ff41" : "#1e4620";
+  const wireframe = nightVision;
   
   return (
-    <>
-      <pointLight ref={light1} position={[-25, 4, -25]} color="#00ff41" distance={50} />
-      <pointLight ref={light2} position={[25, 3, -15]} color="#ff6600" distance={40} />
-    </>
+    <group position={position}>
+      {/* Trunk */}
+      <mesh position={[0, 1.8, 0]}>
+        <cylinderGeometry args={[0.08, 0.16, 4.5, 8]} />
+        <meshStandardMaterial color={trunkColor} roughness={0.9} wireframe={wireframe} />
+      </mesh>
+      
+      {/* Leaves */}
+      <group position={[0, 3.9, 0]}>
+        {[0, 1, 2, 3, 4, 5].map(i => {
+          const angle = (i * Math.PI) / 3;
+          return (
+            <mesh 
+              key={i} 
+              rotation={[0.3, angle, 0.15]} 
+              position={[Math.sin(angle) * 0.7, 0.1, -Math.cos(angle) * 0.7]}
+            >
+              <boxGeometry args={[0.22, 0.03, 1.5]} />
+              <meshStandardMaterial color={leafColor} roughness={0.8} wireframe={wireframe} />
+            </mesh>
+          );
+        })}
+      </group>
+    </group>
   );
 }
 
-function BunkerDoor({ door, isNear }) {
+function BunkerDoor({ door, isNear, nightVision }) {
+  const panelColor = nightVision 
+    ? (isNear ? "#ff6a00" : "#00ff41") 
+    : (isNear ? "var(--cod-secondary)" : "#00aaff");
+
   return (
     <group position={[door.x, 0.1, door.z]} rotation={[0, door.rotY, 0]}>
-      {/* Outer Concrete Door frame */}
+      {/* Concrete Door Frame */}
       <mesh position={[0, 0.8, -0.05]}>
         <boxGeometry args={[2.2, 3.4, 0.25]} />
-        <meshStandardMaterial color="#0c180c" roughness={0.8} metalness={0.6} />
+        <meshStandardMaterial color={nightVision ? "#0c180c" : "#2d2d2d"} roughness={0.85} metalness={0.5} />
       </mesh>
       
       {/* Sliding Glowing Panel */}
       <mesh position={[0, 0.8, 0.05]}>
         <planeGeometry args={[1.8, 3.1]} />
         <meshStandardMaterial 
-          color={isNear ? "#ff6a00" : "#00ff41"} 
-          emissive={isNear ? "#ff6a00" : "#00ff41"} 
+          color={panelColor} 
+          emissive={panelColor} 
           emissiveIntensity={isNear ? 1.0 : 0.4}
           wireframe
         />
       </mesh>
 
-      {/* Security Status Bulb */}
+      {/* Security Status Light */}
       <mesh position={[0, 2.2, 0.1]}>
         <sphereGeometry args={[0.06, 8, 8]} />
-        <meshBasicMaterial color={isNear ? "#ff6a00" : "#00ff41"} />
+        <meshBasicMaterial color={panelColor} />
       </mesh>
 
-      {/* HTML floating label above door */}
+      {/* HTML floating label above door (GTA 5 Heists styling in Daylight) */}
       <Html position={[0, 2.7, 0.15]} center distanceFactor={12}>
         <div 
-          className="terminal-3d-label" 
-          style={{
+          className={nightVision ? "terminal-3d-label" : "terminal-3d-label gta-mode"}
+          style={nightVision ? {
             borderColor: isNear ? 'var(--cod-secondary)' : 'var(--cod-primary)',
             color: isNear ? 'var(--cod-secondary)' : 'var(--cod-primary)',
             boxShadow: isNear ? '0 0 15px rgba(255,106,0,0.3)' : '0 0 10px rgba(0,255,65,0.2)'
+          } : {
+            borderLeftColor: isNear ? 'var(--cod-secondary)' : 'white'
           }}
         >
           {door.label}
@@ -144,7 +172,7 @@ function BunkerDoor({ door, isNear }) {
   );
 }
 
-function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalking }) {
+function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalking, nightVision }) {
   const keys = useRef({ w: false, a: false, s: false, d: false });
   
   // Starting position: on the road at Z = 20, looking forward
@@ -284,12 +312,12 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
 
     // Bounds checking (keep on road and inside corridor width)
     playerX.current = Math.max(-4.2, Math.min(4.2, playerX.current + dx));
-    playerZ.current = Math.max(-35, Math.min(22, playerZ.current + dz)); // Z Zbounds: +22 to -35
+    playerZ.current = Math.max(-35, Math.min(22, playerZ.current + dz)); // Z bounds: +22 to -35
 
     // Eye level walking bob
     const bob = isWalking ? Math.sin(state.clock.elapsedTime * 12) * 0.05 : 0;
 
-    // Camera height (1.6m eye level)
+    // Camera height (1.55m eye level)
     state.camera.position.x = playerX.current;
     state.camera.position.y = 1.55 + bob;
     state.camera.position.z = playerZ.current;
@@ -332,7 +360,28 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
   return null;
 }
 
-export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalId, onNearTerminal, onUpdateWalking }) {
+export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalId, onNearTerminal, onUpdateWalking, nightVision }) {
+  // Update skybox container gradient dynamically based on theme
+  useEffect(() => {
+    const root = document.querySelector('.app-root');
+    if (!root) return;
+    if (nightVision) {
+      root.style.background = '#020402';
+    } else {
+      // Realistic blue California GTA 5 sky
+      root.style.background = 'linear-gradient(to bottom, #1a82e2 0%, #7ab2e8 50%, #b9d8f6 100%)';
+    }
+  }, [nightVision]);
+
+  // Dual-theme light colors
+  const ambientColor = nightVision ? "#002200" : "#99b8ff";
+  const ambientIntensity = nightVision ? 0.05 : 0.55;
+  const sunColor = nightVision ? "#00aa33" : "#fffbf0";
+  const sunIntensity = nightVision ? 0.4 : 1.3;
+  const fogColor = nightVision ? "#020402" : "#b9d8f6";
+  const fogNear = nightVision ? 3 : 8;
+  const fogFar = nightVision ? 26 : 42;
+
   return (
     <div style={{
       position: 'fixed',
@@ -345,71 +394,99 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
       <Canvas
         camera={{ position: [0, 2, 18], fov: 60, near: 0.1, far: 80 }}
         gl={{ antialias: true, alpha: true }}
-        style={{ background: '#020402' }}
+        style={{ background: 'transparent' }}
       >
-        <ambientLight intensity={0.06} color="#002200" />
-        <directionalLight position={[5, 12, -2]} intensity={0.4} color="#00ff41" />
-        <fog attach="fog" args={['#020402', 3, 26]} />
+        <ambientLight intensity={ambientIntensity} color={ambientColor} />
+        <directionalLight position={[10, 15, 10]} intensity={sunIntensity} color={sunColor} />
+        {/* Soft fill light opposite to the sun to make shadows soft blue */}
+        {!nightVision && <directionalLight position={[-10, 8, -10]} intensity={0.3} color="#aaccff" />}
+        
+        <fog attach="fog" args={[fogColor, fogNear, fogFar]} />
         
         <CameraController 
           is3DMode={is3DMode} 
           virtualDir={virtualDir}
           onNearTerminal={onNearTerminal}
           onUpdateWalking={onUpdateWalking}
+          nightVision={nightVision}
         />
         
-        <Embers count={300} />
+        <Embers count={200} nightVision={nightVision} />
         <DistantExplosions />
 
-        {/* 🛣️ THE OUTDOOR ROAD */}
-        {/* Asphalt floor */}
+        {/* 🛣️ THE OUTDOOR ROAD (Highway) */}
+        {/* Asphalt pavement */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.9, 10]}>
           <planeGeometry args={[12, 25]} />
-          <meshStandardMaterial color="#1a1c1a" roughness={0.9} metalness={0.2} />
+          <meshStandardMaterial color={nightVision ? "#1a1c1a" : "#282a2b"} roughness={0.85} metalness={0.1} />
         </mesh>
         
-        {/* Yellow center dashed lanes */}
+        {/* Yellow center dashed lanes (Double line in GTA style) */}
         {[-2, 2, 6, 10, 14, 18, 22].map(z => (
-          <mesh key={z} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.88, z]}>
-            <planeGeometry args={[0.15, 1.8]} />
-            <meshBasicMaterial color="#ffcc00" />
-          </mesh>
+          <group key={z}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-0.08, -1.88, z]}>
+              <planeGeometry args={[0.08, 1.8]} />
+              <meshBasicMaterial color="#ffcc00" />
+            </mesh>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.08, -1.88, z]}>
+              <planeGeometry args={[0.08, 1.8]} />
+              <meshBasicMaterial color="#ffcc00" />
+            </mesh>
+          </group>
         ))}
 
-        {/* Guardrails (Side fences) */}
-        <mesh position={[-6, -0.9, 10]}>
-          <boxGeometry args={[0.2, 2, 25]} />
-          <meshStandardMaterial color="#081008" wireframe />
+        {/* White side lane lines */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-5.8, -1.88, 10]}>
+          <planeGeometry args={[0.12, 25]} />
+          <meshBasicMaterial color="#ffffff" />
         </mesh>
-        <mesh position={[6, -0.9, 10]}>
-          <boxGeometry args={[0.2, 2, 25]} />
-          <meshStandardMaterial color="#081008" wireframe />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[5.8, -1.88, 10]}>
+          <planeGeometry args={[0.12, 25]} />
+          <meshBasicMaterial color="#ffffff" />
         </mesh>
 
-        {/* Streetlight Posts */}
+        {/* Concrete Side Guardrails (Fort Zancudo styling) */}
+        <mesh position={[-6, -0.9, 10]}>
+          <boxGeometry args={[0.24, 2, 25]} />
+          <meshStandardMaterial color={nightVision ? "#081008" : "#7d807d"} roughness={0.9} wireframe={nightVision} />
+        </mesh>
+        <mesh position={[6, -0.9, 10]}>
+          <boxGeometry args={[0.24, 2, 25]} />
+          <meshStandardMaterial color={nightVision ? "#081008" : "#7d807d"} roughness={0.9} wireframe={nightVision} />
+        </mesh>
+
+        {/* 🌴 Stylized 3D Palm Trees (Lining both sides of Los Santos highway) */}
+        {[-4, 3, 10, 17].map(z => (
+          <group key={z}>
+            <PalmTree position={[-5.3, -1.9, z]} nightVision={nightVision} />
+            <PalmTree position={[5.3, -1.9, z]} nightVision={nightVision} />
+          </group>
+        ))}
+
+        {/* Streetlight Posts (Yellow bulb in daylight, green in NV) */}
         {[3, 10, 17].map(z => (
           <group key={z}>
             {/* Left Post */}
             <mesh position={[-5.8, 1.1, z]}>
               <cylinderGeometry args={[0.08, 0.08, 6]} />
-              <meshStandardMaterial color="#0c180c" />
+              <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
             </mesh>
             <mesh position={[-5.5, 4.1, z]} rotation={[0, 0, Math.PI / 2]}>
               <cylinderGeometry args={[0.06, 0.06, 0.6]} />
-              <meshStandardMaterial color="#0c180c" />
+              <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
             </mesh>
-            <pointLight position={[-5.2, 3.9, z]} color="#00ff41" intensity={1.2} distance={10} />
+            <pointLight position={[-5.2, 3.9, z]} color={nightVision ? "#00ff41" : "#ffe8aa"} intensity={nightVision ? 1.2 : 0.8} distance={8} />
 
             {/* Right Post */}
             <mesh position={[5.8, 1.1, z]}>
               <cylinderGeometry args={[0.08, 0.08, 6]} />
-              <meshStandardMaterial color="#0c180c" />
+              <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
             </mesh>
             <mesh position={[5.5, 4.1, z]} rotation={[0, 0, -Math.PI / 2]}>
               <cylinderGeometry args={[0.06, 0.06, 0.6]} />
-              <meshStandardMaterial color="#0c180c" />
+              <meshStandardMaterial color={nightVision ? "#0c180c" : "#2f3a2f"} wireframe={nightVision} />
             </mesh>
-            <pointLight position={[5.2, 3.9, z]} color="#00ff41" intensity={1.2} distance={10} />
+            <pointLight position={[5.2, 3.9, z]} color={nightVision ? "#00ff41" : "#ffe8aa"} intensity={nightVision ? 1.2 : 0.8} distance={8} />
           </group>
         ))}
 
@@ -418,22 +495,17 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
           {/* Left Wall Segment */}
           <mesh position={[-4.5, 1, 0]}>
             <boxGeometry args={[3, 4.2, 0.6]} />
-            <meshStandardMaterial color="#0a140a" roughness={0.85} metalness={0.4} />
+            <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
           </mesh>
           {/* Right Wall Segment */}
           <mesh position={[4.5, 1, 0]}>
             <boxGeometry args={[3, 4.2, 0.6]} />
-            <meshStandardMaterial color="#0a140a" roughness={0.85} metalness={0.4} />
+            <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
           </mesh>
           {/* Arch Ceiling Beam */}
           <mesh position={[0, 2.7, 0]}>
             <boxGeometry args={[6, 0.8, 0.6]} />
-            <meshStandardMaterial color="#0a140a" roughness={0.85} metalness={0.4} />
-          </mesh>
-          {/* Entrance Arch Frame Glow */}
-          <mesh position={[0, 1.1, 0.3]}>
-            <boxGeometry args={[6, 4, 0.15]} />
-            <meshStandardMaterial color="#00ff41" wireframe emissive="#00ff41" emissiveIntensity={0.1} />
+            <meshStandardMaterial color={nightVision ? "#0a140a" : "#4c4f4c"} roughness={0.8} metalness={0.3} wireframe={nightVision} />
           </mesh>
         </group>
 
@@ -441,29 +513,29 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
         {/* Hallway Floor */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.9, -17.5]}>
           <planeGeometry args={[10, 30]} />
-          <meshStandardMaterial color="#090b09" roughness={0.7} metalness={0.5} />
+          <meshStandardMaterial color={nightVision ? "#090b09" : "#1e1e1e"} roughness={0.7} metalness={0.5} />
         </mesh>
         
         {/* Corridor Side Walls (Concrete Grid) */}
         <mesh position={[-5, 1.1, -17.5]}>
           <boxGeometry args={[0.2, 6, 30]} />
-          <meshStandardMaterial color="#061206" wireframe />
+          <meshStandardMaterial color={nightVision ? "#061206" : "#2d332d"} wireframe />
         </mesh>
         <mesh position={[5, 1.1, -17.5]}>
           <boxGeometry args={[0.2, 6, 30]} />
-          <meshStandardMaterial color="#061206" wireframe />
+          <meshStandardMaterial color={nightVision ? "#061206" : "#2d332d"} wireframe />
         </mesh>
 
         {/* Ceiling Panels */}
         <mesh position={[0, 4.1, -17.5]} rotation={[Math.PI / 2, 0, 0]}>
           <planeGeometry args={[10, 30]} />
-          <meshStandardMaterial color="#030803" roughness={0.9} />
+          <meshStandardMaterial color={nightVision ? "#030803" : "#0d120d"} roughness={0.9} />
         </mesh>
         
         {/* Back Wall (Corridor End) */}
         <mesh position={[0, 1.1, -32.5]}>
           <boxGeometry args={[10, 6, 0.2]} />
-          <meshStandardMaterial color="#061206" wireframe />
+          <meshStandardMaterial color={nightVision ? "#061206" : "#1a1f1a"} wireframe />
         </mesh>
 
         {/* 🚪 RENDER THE DOORS */}
@@ -472,6 +544,7 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
             key={door.id}
             door={door}
             isNear={activeTerminalId === door.id}
+            nightVision={nightVision}
           />
         ))}
       </Canvas>

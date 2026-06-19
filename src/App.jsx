@@ -239,6 +239,7 @@ export default function App() {
         activeTerminalId={activeTerminal?.id}
         onNearTerminal={setActiveTerminal}
         onUpdateWalking={setIsWalking}
+        nightVision={nightVision}
       />
       
       {/* Scanline overlay */}

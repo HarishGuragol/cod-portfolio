@@ -443,6 +443,22 @@ body, body * {
   animation: float-tag 3s infinite ease-in-out;
 }
 
+.terminal-3d-label.gta-mode {
+  background: rgba(10, 12, 10, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-left: 4px solid var(--cod-secondary); /* GTA 5 Heist Orange */
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  padding: 5px 12px;
+  animation: float-tag 3.5s infinite ease-in-out;
+}
+
 @keyframes float-tag {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
