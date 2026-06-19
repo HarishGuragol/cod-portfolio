@@ -308,7 +308,7 @@ export default function App() {
       {gameState === STATES.PLAYING_3D && activeTerminal && (
         <div className="proximity-prompt-overlay">
           <div className="prompt-box" onClick={handleInteract}>
-            [E] ACCESS {activeTerminal.label}
+            [E] OPEN {activeTerminal.label}
           </div>
           <div className="prompt-sub">PRESS 'E' OR CLICK TO DEPLOY MISSION</div>
         </div>
@@ -366,10 +366,11 @@ export default function App() {
             </button>
           </div>
           <div className="objectives-list" style={{ fontSize: '0.55rem', color: 'var(--cod-text)', lineHeight: '1.5' }}>
-            <div style={{ marginBottom: '6px' }}>▪ USE <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> OR <kbd>ARROWS</kbd> TO MOVE</div>
+            <div style={{ marginBottom: '6px' }}>▪ USE <kbd>W</kbd>/<kbd>S</kbd> TO WALK FORWARD/BACKWARD</div>
+            <div style={{ marginBottom: '6px' }}>▪ USE <kbd>A</kbd>/<kbd>D</kbd> OR DRAG MOUSE TO ROTATE VIEW</div>
             <div style={{ marginBottom: '6px' }}>▪ POINT & CLICK ANYWHERE TO FIRE WEAPON</div>
-            <div style={{ marginBottom: '6px' }}>▪ APPROACH TERMINAL PEDESTALS TO INTERACT</div>
-            <div style={{ marginBottom: '6px' }}>▪ PRESS <kbd>E</kbd> OR CLICK PROMPT TO ACCESS TERMINAL</div>
+            <div style={{ marginBottom: '6px' }}>▪ APPROACH BUNKER DOORS & LOOK AT THEM</div>
+            <div style={{ marginBottom: '6px' }}>▪ PRESS <kbd>E</kbd> OR CLICK PROMPT TO OPEN THE DOOR</div>
             <div>▪ PRESS <kbd>N</kbd> FOR NIGHT VISION / <kbd>M</kbd> FOR AUDIO</div>
           </div>
         </div>

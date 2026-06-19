@@ -149,23 +149,23 @@ export default function HUD({
           <div className="objectives-list">
             <div className={`objective-item ${completedObjectives.includes('campaign_read_dossier') || completedObjectives.includes('campaign_explore_timeline') ? 'completed' : ''}`}>
               <span className="objective-checkbox" />
-              <span>ACCESS CAMPAIGN TERMINAL</span>
+              <span>OPEN CAMPAIGN DOOR</span>
             </div>
             <div className={`objective-item ${completedObjectives.includes('multiplayer_view_projects') ? 'completed' : ''}`}>
               <span className="objective-checkbox" />
-              <span>ACCESS MULTIPLAYER TERMINAL</span>
+              <span>OPEN MULTIPLAYER DOOR</span>
             </div>
             <div className={`objective-item ${completedObjectives.includes('armory_equip_weapon') ? 'completed' : ''}`}>
               <span className="objective-checkbox" />
-              <span>ACCESS ARMORY TERMINAL</span>
+              <span>OPEN ARMORY DOOR</span>
             </div>
             <div className={`objective-item ${completedObjectives.includes('barracks_inspect_certs') ? 'completed' : ''}`}>
               <span className="objective-checkbox" />
-              <span>ACCESS BARRACKS TERMINAL</span>
+              <span>OPEN BARRACKS DOOR</span>
             </div>
             <div className={`objective-item ${completedObjectives.includes('comms_secure_uplink') ? 'completed' : ''}`}>
               <span className="objective-checkbox" />
-              <span>ACCESS COMMS TERMINAL</span>
+              <span>OPEN COMMS DOOR</span>
             </div>
           </div>
         </div>

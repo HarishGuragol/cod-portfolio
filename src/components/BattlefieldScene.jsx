@@ -1,20 +1,20 @@
 /* ============================================================
-   BattlefieldScene — 3D Command Bunker Walkthrough Mode
+   BattlefieldScene — 3D Outdoor Road & Bunker Hallway Walkthrough
    ============================================================ */
 import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
-const TERMINALS = [
-  { id: 'campaign', label: 'CAMPAIGN DOSSIER', x: -3.5, z: -3 },
-  { id: 'multiplayer', label: 'MULTIPLAYER LOBBY', x: -2, z: -9 },
-  { id: 'armory', label: 'ARMORY WORKBENCH', x: 2, z: -15 },
-  { id: 'barracks', label: 'BARRACKS RECORDS', x: 3.5, z: -21 },
-  { id: 'comms', label: 'COMMS TRANSCEIVER', x: 0, z: -27 }
+const DOORS = [
+  { id: 'campaign', label: 'CAMPAIGN DOSSIER', x: -4.8, z: -8, rotY: Math.PI / 2 },
+  { id: 'multiplayer', label: 'MULTIPLAYER LOBBY', x: 4.8, z: -8, rotY: -Math.PI / 2 },
+  { id: 'armory', label: 'ARMORY WORKBENCH', x: -4.8, z: -18, rotY: Math.PI / 2 },
+  { id: 'barracks', label: 'BARRACKS RECORDS', x: 4.8, z: -18, rotY: -Math.PI / 2 },
+  { id: 'comms', label: 'COMMS TRANSCEIVER', x: 0, z: -28, rotY: 0 }
 ];
 
-function Embers({ count = 400 }) {
+function Embers({ count = 300 }) {
   const meshRef = useRef();
   
   const [positions, velocities, colors, sizes] = useMemo(() => {
@@ -25,26 +25,19 @@ function Embers({ count = 400 }) {
     
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
-      pos[i3] = (Math.random() - 0.5) * 50;
-      pos[i3 + 1] = Math.random() * 20 - 4;
+      pos[i3] = (Math.random() - 0.5) * 40;
+      pos[i3 + 1] = Math.random() * 15 - 3;
       pos[i3 + 2] = (Math.random() - 0.5) * 60;
       
-      vel[i3] = (Math.random() - 0.5) * 0.008;
-      vel[i3 + 1] = Math.random() * 0.012 + 0.003;
-      vel[i3 + 2] = (Math.random() - 0.5) * 0.008;
+      vel[i3] = (Math.random() - 0.5) * 0.005;
+      vel[i3 + 1] = Math.random() * 0.008 + 0.002;
+      vel[i3 + 2] = (Math.random() - 0.5) * 0.005;
       
-      const type = Math.random();
-      if (type < 0.6) {
-        col[i3] = 0.0;
-        col[i3 + 1] = 0.8 + Math.random() * 0.2;
-        col[i3 + 2] = 0.1 + Math.random() * 0.15;
-      } else {
-        col[i3] = 1.0;
-        col[i3 + 1] = 0.3 + Math.random() * 0.3;
-        col[i3 + 2] = 0.0;
-      }
+      col[i3] = 0.0;
+      col[i3 + 1] = 0.8 + Math.random() * 0.2;
+      col[i3 + 2] = 0.1 + Math.random() * 0.1;
       
-      siz[i] = Math.random() * 2.5 + 1;
+      siz[i] = Math.random() * 2 + 1;
     }
     
     return [pos, vel, col, siz];
@@ -60,9 +53,9 @@ function Embers({ count = 400 }) {
       posArr[i3 + 1] += velocities[i3 + 1];
       posArr[i3 + 2] += velocities[i3 + 2];
       
-      if (posArr[i3 + 1] > 18) {
-        posArr[i3] = (Math.random() - 0.5) * 50;
-        posArr[i3 + 1] = -4;
+      if (posArr[i3 + 1] > 12) {
+        posArr[i3] = (Math.random() - 0.5) * 40;
+        posArr[i3 + 1] = -3;
         posArr[i3 + 2] = (Math.random() - 0.5) * 60;
       }
     }
@@ -80,8 +73,8 @@ function Embers({ count = 400 }) {
       <pointsMaterial
         vertexColors
         transparent
-        opacity={0.8}
-        size={0.06}
+        opacity={0.6}
+        size={0.05}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthWrite={false}
@@ -93,61 +86,49 @@ function Embers({ count = 400 }) {
 function DistantExplosions() {
   const light1 = useRef();
   const light2 = useRef();
-  const light3 = useRef();
   
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    if (light1.current) light1.current.intensity = (Math.sin(t * 0.7) * 0.5 + 0.5) * 2;
-    if (light2.current) light2.current.intensity = (Math.sin(t * 1.2 + 2) * 0.5 + 0.5) * 1.5;
-    if (light3.current) light3.current.intensity = (Math.sin(t * 0.4 + 4) * 0.5 + 0.5) * 1.2;
+    if (light1.current) light1.current.intensity = (Math.sin(t * 0.6) * 0.5 + 0.5) * 1.5;
+    if (light2.current) light2.current.intensity = (Math.sin(t * 1.1 + 1.5) * 0.5 + 0.5) * 1.2;
   });
   
   return (
     <>
-      <pointLight ref={light1} position={[-20, 5, -20]} color="#ff4400" distance={60} />
-      <pointLight ref={light2} position={[20, 3, -30]} color="#00ff41" distance={50} />
-      <pointLight ref={light3} position={[0, 8, -40]} color="#ff6600" distance={70} />
+      <pointLight ref={light1} position={[-25, 4, -25]} color="#00ff41" distance={50} />
+      <pointLight ref={light2} position={[25, 3, -15]} color="#ff6600" distance={40} />
     </>
   );
 }
 
-function HoloTerminal({ position, label, isNear }) {
-  const meshRef = useRef();
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.015;
-      meshRef.current.rotation.x += 0.008;
-    }
-  });
-
+function BunkerDoor({ door, isNear }) {
   return (
-    <group position={position}>
-      {/* Glowing floating hologram */}
-      <mesh ref={meshRef} position={[0, 0.4, 0]}>
-        <dodecahedronGeometry args={[0.25]} />
-        <meshStandardMaterial
-          color={isNear ? "#ff6a00" : "#00ff41"}
-          emissive={isNear ? "#ff6a00" : "#00ff41"}
-          emissiveIntensity={1.2}
-          wireframe
-        />
+    <group position={[door.x, 0.1, door.z]} rotation={[0, door.rotY, 0]}>
+      {/* Outer Concrete Door frame */}
+      <mesh position={[0, 0.8, -0.05]}>
+        <boxGeometry args={[2.2, 3.4, 0.25]} />
+        <meshStandardMaterial color="#0c180c" roughness={0.8} metalness={0.6} />
       </mesh>
       
-      {/* Cyber projection beam */}
-      <mesh position={[0, -0.1, 0]}>
-        <cylinderGeometry args={[0.2, 0.3, 0.6, 8, 1, true]} />
-        <meshBasicMaterial
-          color={isNear ? "#ff6a00" : "#00ff41"}
-          transparent
-          opacity={0.15}
-          side={THREE.DoubleSide}
+      {/* Sliding Glowing Panel */}
+      <mesh position={[0, 0.8, 0.05]}>
+        <planeGeometry args={[1.8, 3.1]} />
+        <meshStandardMaterial 
+          color={isNear ? "#ff6a00" : "#00ff41"} 
+          emissive={isNear ? "#ff6a00" : "#00ff41"} 
+          emissiveIntensity={isNear ? 1.0 : 0.4}
           wireframe
         />
       </mesh>
 
-      {/* HTML label badge */}
-      <Html position={[0, 1.1, 0]} center distanceFactor={15}>
+      {/* Security Status Bulb */}
+      <mesh position={[0, 2.2, 0.1]}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color={isNear ? "#ff6a00" : "#00ff41"} />
+      </mesh>
+
+      {/* HTML floating label above door */}
+      <Html position={[0, 2.7, 0.15]} center distanceFactor={12}>
         <div 
           className="terminal-3d-label" 
           style={{
@@ -156,7 +137,7 @@ function HoloTerminal({ position, label, isNear }) {
             boxShadow: isNear ? '0 0 15px rgba(255,106,0,0.3)' : '0 0 10px rgba(0,255,65,0.2)'
           }}
         >
-          {label}
+          {door.label}
         </div>
       </Html>
     </group>
@@ -165,11 +146,21 @@ function HoloTerminal({ position, label, isNear }) {
 
 function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalking }) {
   const keys = useRef({ w: false, a: false, s: false, d: false });
-  const playerZ = useRef(5);
+  
+  // Starting position: on the road at Z = 20, looking forward
   const playerX = useRef(0);
+  const playerZ = useRef(20);
+  
+  // View rotation
+  const yaw = useRef(0);
+  const pitch = useRef(0);
+  
+  // Drag to look state
+  const isDragging = useRef(false);
+  const previousMousePosition = useRef({ x: 0, y: 0 });
 
-  // Set keyboard listeners
   useEffect(() => {
+    // Keyboard listeners
     const handleKeyDown = (e) => {
       if (!is3DMode) return;
       if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.current.w = true;
@@ -185,73 +176,156 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
       if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') keys.current.d = false;
     };
 
+    // Drag listeners for looking around
+    const handleMouseDown = (e) => {
+      if (e.target.closest('button, kbd, .virtual-dpad, .proximity-prompt-overlay, .hud-onboarding-panel, .hud-overlay')) return;
+      isDragging.current = true;
+      previousMousePosition.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isDragging.current || !is3DMode) return;
+      const deltaX = e.clientX - previousMousePosition.current.x;
+      const deltaY = e.clientY - previousMousePosition.current.y;
+      
+      yaw.current -= deltaX * 0.005;
+      pitch.current = Math.max(-0.6, Math.min(0.6, pitch.current - deltaY * 0.005));
+      
+      previousMousePosition.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+    };
+
+    // Touch support for drag look
+    const handleTouchStart = (e) => {
+      if (e.target.closest('button, kbd, .virtual-dpad, .proximity-prompt-overlay, .hud-onboarding-panel, .hud-overlay')) return;
+      if (e.touches.length === 1) {
+        isDragging.current = true;
+        previousMousePosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (!isDragging.current || !is3DMode || e.touches.length !== 1) return;
+      const deltaX = e.touches[0].clientX - previousMousePosition.current.x;
+      const deltaY = e.touches[0].clientY - previousMousePosition.current.y;
+      
+      yaw.current -= deltaX * 0.006;
+      pitch.current = Math.max(-0.6, Math.min(0.6, pitch.current - deltaY * 0.006));
+      
+      previousMousePosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleMouseUp);
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleMouseUp);
     };
   }, [is3DMode]);
 
   useFrame((state, delta) => {
     if (!is3DMode) {
-      // Cinematic menu camera sway
+      // Cinematic overview sway
       const t = state.clock.elapsedTime;
-      state.camera.position.x = Math.sin(t * 0.1) * 0.6;
-      state.camera.position.y = 2 + Math.sin(t * 0.15) * 0.3;
-      state.camera.position.z = 5;
-      state.camera.lookAt(0, 1.2, -10);
+      state.camera.position.x = Math.sin(t * 0.1) * 0.8;
+      state.camera.position.y = 2.2 + Math.sin(t * 0.15) * 0.3;
+      state.camera.position.z = 18;
+      state.camera.lookAt(0, 1.0, 5);
       return;
     }
 
-    // --- Movement calculations ---
-    const moveSpeed = 6 * delta;
+    // --- Keyboard rotation sway ---
+    if (keys.current.a || virtualDir === 'LEFT') {
+      yaw.current += 1.5 * delta;
+    }
+    if (keys.current.d || virtualDir === 'RIGHT') {
+      yaw.current -= 1.5 * delta;
+    }
+
+    // --- Movement calculations relative to camera angle ---
+    const moveSpeed = 6.5 * delta;
     let dx = 0;
     let dz = 0;
 
-    if (keys.current.w || virtualDir === 'UP') dz -= moveSpeed;
-    if (keys.current.s || virtualDir === 'DOWN') dz += moveSpeed;
-    if (keys.current.a || virtualDir === 'LEFT') dx -= moveSpeed;
-    if (keys.current.d || virtualDir === 'RIGHT') dx += moveSpeed;
+    // Movement forward/backward in direction player is looking
+    const forwardX = Math.sin(yaw.current);
+    const forwardZ = -Math.cos(yaw.current);
 
-    // Check if moving
+    if (keys.current.w || virtualDir === 'UP') {
+      dx += forwardX * moveSpeed;
+      dz += forwardZ * moveSpeed;
+    }
+    if (keys.current.s || virtualDir === 'DOWN') {
+      dx -= forwardX * moveSpeed;
+      dz -= forwardZ * moveSpeed;
+    }
+
+    // Update walking indicators
     const isWalking = dx !== 0 || dz !== 0;
     if (onUpdateWalking) {
       onUpdateWalking(isWalking);
     }
 
-    // Update coordinates with constraints (bunker size boundaries)
-    playerX.current = Math.max(-8, Math.min(8, playerX.current + dx));
-    playerZ.current = Math.max(-32, Math.min(8, playerZ.current + dz));
+    // Bounds checking (keep on road and inside corridor width)
+    playerX.current = Math.max(-4.2, Math.min(4.2, playerX.current + dx));
+    playerZ.current = Math.max(-35, Math.min(22, playerZ.current + dz)); // Z Zbounds: +22 to -35
 
-    // Bobbing height when walking
+    // Eye level walking bob
     const bob = isWalking ? Math.sin(state.clock.elapsedTime * 12) * 0.05 : 0;
 
-    // Set camera position
+    // Camera height (1.6m eye level)
     state.camera.position.x = playerX.current;
-    state.camera.position.y = 1.6 + bob; // fixed eye level + walk bob
+    state.camera.position.y = 1.55 + bob;
     state.camera.position.z = playerZ.current;
 
-    // Look forward down the hallway corridor
-    state.camera.lookAt(playerX.current, 1.6, playerZ.current - 10);
+    // Face camera along yaw and pitch orientation
+    const lookX = playerX.current + Math.sin(yaw.current) * Math.cos(pitch.current);
+    const lookY = 1.55 + Math.sin(pitch.current);
+    const lookZ = playerZ.current - Math.cos(yaw.current) * Math.cos(pitch.current);
 
-    // --- Proximity detection ---
-    let nearestTerminal = null;
-    let minDist = 2.2; // interaction distance threshhold
+    state.camera.lookAt(lookX, lookY, lookZ);
 
-    TERMINALS.forEach(term => {
-      const dist = Math.sqrt(
-        Math.pow(playerX.current - term.x, 2) + 
-        Math.pow(playerZ.current - term.z, 2)
-      );
+    // --- Proximity & Looking Door Detection ---
+    let nearestDoor = null;
+    let minDist = 3.2; // trigger distance
+
+    DOORS.forEach(door => {
+      const dxVec = door.x - playerX.current;
+      const dzVec = door.z - playerZ.current;
+      const dist = Math.sqrt(dxVec * dxVec + dzVec * dzVec);
+      
       if (dist < minDist) {
-        minDist = dist;
-        nearestTerminal = term;
+        // Calculate dot product between player facing vector and vector to door
+        const fX = Math.sin(yaw.current);
+        const fZ = -Math.cos(yaw.current);
+        const dot = (dxVec * fX + dzVec * fZ) / dist;
+        
+        // Only select door if it is in front of the camera (roughly 60 degrees FOV)
+        if (dot > 0.4) {
+          minDist = dist;
+          nearestDoor = door;
+        }
       }
     });
 
     if (onNearTerminal) {
-      onNearTerminal(nearestTerminal);
+      onNearTerminal(nearestDoor);
     }
   });
 
@@ -269,13 +343,13 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
       zIndex: 0,
     }}>
       <Canvas
-        camera={{ position: [0, 2, 5], fov: 60, near: 0.1, far: 100 }}
+        camera={{ position: [0, 2, 18], fov: 60, near: 0.1, far: 80 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: '#020402' }}
       >
-        <ambientLight intensity={0.05} color="#002200" />
-        <directionalLight position={[5, 10, -5]} intensity={0.4} color="#00aa33" />
-        <fog attach="fog" args={['#020402', 4, 35]} />
+        <ambientLight intensity={0.06} color="#002200" />
+        <directionalLight position={[5, 12, -2]} intensity={0.4} color="#00ff41" />
+        <fog attach="fog" args={['#020402', 3, 26]} />
         
         <CameraController 
           is3DMode={is3DMode} 
@@ -284,50 +358,121 @@ export default function BattlefieldScene({ is3DMode, virtualDir, activeTerminalI
           onUpdateWalking={onUpdateWalking}
         />
         
-        <Embers count={400} />
-        <gridHelper args={[100, 100, '#0a3a0a', '#041504']} position={[0, -2.9, 0]} />
+        <Embers count={300} />
         <DistantExplosions />
 
-        {/* Render Pedestals & Holographic nodes */}
-        {TERMINALS.map(term => (
-          <group key={term.id}>
-            {/* Pedestal Base */}
-            <mesh position={[term.x, -1.9, term.z]}>
-              <cylinderGeometry args={[0.3, 0.4, 2, 8]} />
-              <meshStandardMaterial color="#0c180c" roughness={0.7} metalness={0.5} />
-            </mesh>
+        {/* 🛣️ THE OUTDOOR ROAD */}
+        {/* Asphalt floor */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.9, 10]}>
+          <planeGeometry args={[12, 25]} />
+          <meshStandardMaterial color="#1a1c1a" roughness={0.9} metalness={0.2} />
+        </mesh>
+        
+        {/* Yellow center dashed lanes */}
+        {[-2, 2, 6, 10, 14, 18, 22].map(z => (
+          <mesh key={z} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.88, z]}>
+            <planeGeometry args={[0.15, 1.8]} />
+            <meshBasicMaterial color="#ffcc00" />
+          </mesh>
+        ))}
 
-            {/* Pedestal Cap Glow */}
-            <mesh position={[term.x, -0.9, term.z]}>
-              <cylinderGeometry args={[0.32, 0.32, 0.05, 8]} />
-              <meshStandardMaterial 
-                color={activeTerminalId === term.id ? "#ff6a00" : "#00ff41"} 
-                emissive={activeTerminalId === term.id ? "#ff6a00" : "#00ff41"} 
-                emissiveIntensity={0.5}
-              />
-            </mesh>
+        {/* Guardrails (Side fences) */}
+        <mesh position={[-6, -0.9, 10]}>
+          <boxGeometry args={[0.2, 2, 25]} />
+          <meshStandardMaterial color="#081008" wireframe />
+        </mesh>
+        <mesh position={[6, -0.9, 10]}>
+          <boxGeometry args={[0.2, 2, 25]} />
+          <meshStandardMaterial color="#081008" wireframe />
+        </mesh>
 
-            {/* Rotating Hologram Node */}
-            <HoloTerminal 
-              position={[term.x, -0.9, term.z]} 
-              label={term.label} 
-              isNear={activeTerminalId === term.id} 
-            />
+        {/* Streetlight Posts */}
+        {[3, 10, 17].map(z => (
+          <group key={z}>
+            {/* Left Post */}
+            <mesh position={[-5.8, 1.1, z]}>
+              <cylinderGeometry args={[0.08, 0.08, 6]} />
+              <meshStandardMaterial color="#0c180c" />
+            </mesh>
+            <mesh position={[-5.5, 4.1, z]} rotation={[0, 0, Math.PI / 2]}>
+              <cylinderGeometry args={[0.06, 0.06, 0.6]} />
+              <meshStandardMaterial color="#0c180c" />
+            </mesh>
+            <pointLight position={[-5.2, 3.9, z]} color="#00ff41" intensity={1.2} distance={10} />
+
+            {/* Right Post */}
+            <mesh position={[5.8, 1.1, z]}>
+              <cylinderGeometry args={[0.08, 0.08, 6]} />
+              <meshStandardMaterial color="#0c180c" />
+            </mesh>
+            <mesh position={[5.5, 4.1, z]} rotation={[0, 0, -Math.PI / 2]}>
+              <cylinderGeometry args={[0.06, 0.06, 0.6]} />
+              <meshStandardMaterial color="#0c180c" />
+            </mesh>
+            <pointLight position={[5.2, 3.9, z]} color="#00ff41" intensity={1.2} distance={10} />
           </group>
         ))}
 
-        {/* Bunker Wall pillars to define 3D depth */}
-        {[-30, -24, -18, -12, -6, 0].map(z => (
-          <group key={z}>
-            <mesh position={[-6, -0.9, z]}>
-              <boxGeometry args={[0.5, 4, 0.5]} />
-              <meshStandardMaterial color="#061006" wireframe />
-            </mesh>
-            <mesh position={[6, -0.9, z]}>
-              <boxGeometry args={[0.5, 4, 0.5]} />
-              <meshStandardMaterial color="#061006" wireframe />
-            </mesh>
-          </group>
+        {/* 🏢 THE CONCRETE BUNKER FACADE (Entrance Gate) */}
+        <group position={[0, 0.1, -2.5]}>
+          {/* Left Wall Segment */}
+          <mesh position={[-4.5, 1, 0]}>
+            <boxGeometry args={[3, 4.2, 0.6]} />
+            <meshStandardMaterial color="#0a140a" roughness={0.85} metalness={0.4} />
+          </mesh>
+          {/* Right Wall Segment */}
+          <mesh position={[4.5, 1, 0]}>
+            <boxGeometry args={[3, 4.2, 0.6]} />
+            <meshStandardMaterial color="#0a140a" roughness={0.85} metalness={0.4} />
+          </mesh>
+          {/* Arch Ceiling Beam */}
+          <mesh position={[0, 2.7, 0]}>
+            <boxGeometry args={[6, 0.8, 0.6]} />
+            <meshStandardMaterial color="#0a140a" roughness={0.85} metalness={0.4} />
+          </mesh>
+          {/* Entrance Arch Frame Glow */}
+          <mesh position={[0, 1.1, 0.3]}>
+            <boxGeometry args={[6, 4, 0.15]} />
+            <meshStandardMaterial color="#00ff41" wireframe emissive="#00ff41" emissiveIntensity={0.1} />
+          </mesh>
+        </group>
+
+        {/* 🏢 INSIDE BUNKER CORRIDOR */}
+        {/* Hallway Floor */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.9, -17.5]}>
+          <planeGeometry args={[10, 30]} />
+          <meshStandardMaterial color="#090b09" roughness={0.7} metalness={0.5} />
+        </mesh>
+        
+        {/* Corridor Side Walls (Concrete Grid) */}
+        <mesh position={[-5, 1.1, -17.5]}>
+          <boxGeometry args={[0.2, 6, 30]} />
+          <meshStandardMaterial color="#061206" wireframe />
+        </mesh>
+        <mesh position={[5, 1.1, -17.5]}>
+          <boxGeometry args={[0.2, 6, 30]} />
+          <meshStandardMaterial color="#061206" wireframe />
+        </mesh>
+
+        {/* Ceiling Panels */}
+        <mesh position={[0, 4.1, -17.5]} rotation={[Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[10, 30]} />
+          <meshStandardMaterial color="#030803" roughness={0.9} />
+        </mesh>
+        
+        {/* Back Wall (Corridor End) */}
+        <mesh position={[0, 1.1, -32.5]}>
+          <boxGeometry args={[10, 6, 0.2]} />
+          <meshStandardMaterial color="#061206" wireframe />
+        </mesh>
+
+        {/* 🚪 RENDER THE DOORS */}
+        {DOORS.map(door => (
+          <BunkerDoor 
+            key={door.id}
+            door={door}
+            isNear={activeTerminalId === door.id}
+          />
         ))}
       </Canvas>
     </div>
