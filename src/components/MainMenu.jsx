@@ -16,7 +16,7 @@ const MENU_ITEMS = [
   { id: 'comms', icon: '📡', label: 'Comms', desc: 'SECURE CHANNELS', key: '5' },
 ];
 
-export default function MainMenu({ onSelectSection, audioEnabled, xp = CONFIG.stats.xp, level = CONFIG.stats.level }) {
+export default function MainMenu({ onSelectSection, onSelect3DMode, audioEnabled, xp = CONFIG.stats.xp, level = CONFIG.stats.level }) {
   const [hoveredItem, setHoveredItem] = useState(null);
   const [embers, setEmbers] = useState([]);
   
@@ -130,6 +130,38 @@ export default function MainMenu({ onSelectSection, audioEnabled, xp = CONFIG.st
           <p className="menu-title-role">{CONFIG.player.title}</p>
           <p className="menu-title-sub">{CONFIG.player.subtitle}</p>
         </motion.div>
+        
+        {/* Playable 3D mode button */}
+        <motion.button
+          className="menu-nav-btn"
+          style={{
+            borderColor: 'var(--cod-secondary)',
+            color: 'var(--cod-secondary)',
+            background: 'rgba(255, 106, 0, 0.05)',
+            marginBottom: '10px',
+            width: '100%',
+            fontWeight: 'bold',
+            zIndex: 10
+          }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+          onClick={() => onSelect3DMode()}
+          onMouseEnter={() => {
+            if (audioEnabled) {
+              try { playUIHover(); } catch(e) {}
+            }
+          }}
+        >
+          <span className="menu-btn-icon">🎮</span>
+          <span className="menu-btn-label">
+            3D BUNKER WALKTHROUGH
+            <div className="menu-btn-desc" style={{ color: 'rgba(255, 106, 0, 0.6)' }}>
+              FPS MODE // WALK & DEPLOY
+            </div>
+          </span>
+          <span className="menu-btn-arrow" style={{ color: 'var(--cod-secondary)' }}>▸</span>
+        </motion.button>
         
         {/* Navigation */}
         <nav className="menu-nav">

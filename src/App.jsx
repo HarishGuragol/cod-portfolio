@@ -25,6 +25,7 @@ import './styles/effects.css';
 const STATES = {
   BOOT: 'boot',
   MENU: 'menu',
+  PLAYING_3D: 'playing_3d',
   BRIEFING: 'briefing',
   SECTION: 'section',
 };
@@ -37,6 +38,13 @@ export default function App() {
   const [nightVision, setNightVision] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
   
+  // ── 3D Playable Walkthrough State ──────────────────────────
+  const [activeTerminal, setActiveTerminal] = useState(null);
+  const [virtualDir, setVirtualDir] = useState('');
+  const [isWalking, setIsWalking] = useState(false);
+  const [isFiring, setIsFiring] = useState(false);
+  const [cameFrom3D, setCameFrom3D] = useState(false);
+
   // ── Operative Stats (Stateful) ─────────────────────────────
   const [xp, setXp] = useState(CONFIG.stats.xp);
   const [level, setLevel] = useState(CONFIG.stats.level);
@@ -47,7 +55,7 @@ export default function App() {
   const handleBootComplete = useCallback(() => {
     setShowFlash(true);
     setTimeout(() => setShowFlash(false), 300);
-    setGameState(STATES.MENU);
+    setGameState(STATES.PLAYING_3D); // Start in 3D mode directly!
   }, []);
   
   // ── Section Selection (Triggers Briefing) ──────────────────
@@ -57,6 +65,15 @@ export default function App() {
     }
     setPendingSection(sectionId);
     setGameState(STATES.BRIEFING);
+  }, [audioEnabled]);
+
+  // Launch 3D Walkthrough Mode (retained as backup)
+  const handleSelect3DMode = useCallback(() => {
+    if (audioEnabled) {
+      try { playUIClick(); } catch(e) {}
+    }
+    setCameFrom3D(true);
+    setGameState(STATES.PLAYING_3D);
   }, [audioEnabled]);
 
   // ── Briefing Complete (Enters Section) ─────────────────────
@@ -79,9 +96,16 @@ export default function App() {
       setShowFlash(false);
       setCurrentSection(null);
       setPendingSection(null);
-      setGameState(STATES.MENU);
+      setGameState(STATES.PLAYING_3D); // Always return to 3D walkable bunker!
     }, 150);
   }, [audioEnabled]);
+
+  // Terminal Proximity Interaction
+  const handleInteract = useCallback(() => {
+    if (activeTerminal) {
+      handleSelectSection(activeTerminal.id);
+    }
+  }, [activeTerminal, handleSelectSection]);
   
   // ── Audio Toggle ──────────────────────────────────────────
   const handleToggleAudio = useCallback(() => {
@@ -129,6 +153,41 @@ export default function App() {
       return [...prev, objectiveId];
     });
   }, [audioEnabled]);
+
+  // Onboarding Tutorial State
+  const [showTutorial, setShowTutorial] = useState(true);
+
+  // FPS Muzzle Recoil Fire click listener
+  useEffect(() => {
+    if (gameState !== STATES.PLAYING_3D) return;
+
+    const handleMouseClick = (e) => {
+      if (e.target.closest('button, kbd, .virtual-dpad, .proximity-prompt-overlay, .hud-onboarding-panel')) return;
+
+      setIsFiring(true);
+      if (audioEnabled) {
+        try {
+          // Play programmatic synthesized gunshot clank
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.12);
+        } catch (err) {}
+      }
+      setTimeout(() => setIsFiring(false), 120);
+    };
+
+    window.addEventListener('click', handleMouseClick);
+    return () => window.removeEventListener('click', handleMouseClick);
+  }, [gameState, audioEnabled]);
   
   // ── Keyboard Shortcuts ────────────────────────────────────
   useEffect(() => {
@@ -137,9 +196,18 @@ export default function App() {
       if (e.key === 'Escape') {
         if (gameState === STATES.SECTION) {
           handleBackToMenu();
+        } else if (gameState === STATES.PLAYING_3D) {
+          setCameFrom3D(false);
         }
       }
       
+      // E — interact in 3D
+      if (e.key === 'e' || e.key === 'E') {
+        if (gameState === STATES.PLAYING_3D) {
+          handleInteract();
+        }
+      }
+
       // N — toggle night vision
       if (e.key === 'n' || e.key === 'N') {
         if (gameState !== STATES.BOOT) {
@@ -157,15 +225,21 @@ export default function App() {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, handleBackToMenu, handleToggleNightVision, handleToggleAudio]);
+  }, [gameState, handleBackToMenu, handleToggleNightVision, handleToggleAudio, handleInteract]);
   
   return (
     <div className={`app-root ${nightVision ? 'night-vision-active' : ''}`}>
       {/* Custom Crosshair Cursor */}
       <Crosshair />
 
-      {/* 3D Background — always rendered */}
-      <BattlefieldScene />
+      {/* 3D Background & Bunker Room */}
+      <BattlefieldScene
+        is3DMode={gameState === STATES.PLAYING_3D}
+        virtualDir={virtualDir}
+        activeTerminalId={activeTerminal?.id}
+        onNearTerminal={setActiveTerminal}
+        onUpdateWalking={setIsWalking}
+      />
       
       {/* Scanline overlay */}
       <div className="scanline-overlay" />
@@ -198,16 +272,6 @@ export default function App() {
           <BootScreen onComplete={handleBootComplete} />
         )}
         
-        {/* Main Menu */}
-        {gameState === STATES.MENU && (
-          <MainMenu
-            onSelectSection={handleSelectSection}
-            audioEnabled={audioEnabled}
-            xp={xp}
-            level={level}
-          />
-        )}
-        
         {/* Mission Briefing Loading Screen */}
         {gameState === STATES.BRIEFING && pendingSection && (
           <MissionBriefing
@@ -229,7 +293,89 @@ export default function App() {
         )}
       </AnimatePresence>
       
-      {/* HUD — visible in menu, briefing & section states */}
+      {/* FPS Weapon Overlay */}
+      {gameState === STATES.PLAYING_3D && (
+        <div className="fps-weapon-viewport">
+          <img
+            src="/images/weapon.png"
+            alt="FPS Weapon"
+            className={`fps-weapon-image ${isWalking ? 'walking-bob' : ''} ${isFiring ? 'firing-recoil' : ''}`}
+          />
+        </div>
+      )}
+
+      {/* Proximity Interaction Prompt */}
+      {gameState === STATES.PLAYING_3D && activeTerminal && (
+        <div className="proximity-prompt-overlay">
+          <div className="prompt-box" onClick={handleInteract}>
+            [E] ACCESS {activeTerminal.label}
+          </div>
+          <div className="prompt-sub">PRESS 'E' OR CLICK TO DEPLOY MISSION</div>
+        </div>
+      )}
+
+      {/* Virtual D-pad (Touch / Mobile support) */}
+      {gameState === STATES.PLAYING_3D && (
+        <div className="virtual-dpad">
+          <button 
+            className="dpad-btn dpad-up" 
+            onMouseDown={() => setVirtualDir('UP')} 
+            onMouseUp={() => setVirtualDir('')}
+            onMouseLeave={() => setVirtualDir('')}
+            onTouchStart={() => setVirtualDir('UP')}
+            onTouchEnd={() => setVirtualDir('')}
+          >▲</button>
+          <button 
+            className="dpad-btn dpad-left" 
+            onMouseDown={() => setVirtualDir('LEFT')} 
+            onMouseUp={() => setVirtualDir('')}
+            onMouseLeave={() => setVirtualDir('')}
+            onTouchStart={() => setVirtualDir('LEFT')}
+            onTouchEnd={() => setVirtualDir('')}
+          >◀</button>
+          <div className="dpad-center">WASD<br/>D-PAD</div>
+          <button 
+            className="dpad-btn dpad-right" 
+            onMouseDown={() => setVirtualDir('RIGHT')} 
+            onMouseUp={() => setVirtualDir('')}
+            onMouseLeave={() => setVirtualDir('')}
+            onTouchStart={() => setVirtualDir('RIGHT')}
+            onTouchEnd={() => setVirtualDir('')}
+          >▶</button>
+          <button 
+            className="dpad-btn dpad-down" 
+            onMouseDown={() => setVirtualDir('DOWN')} 
+            onMouseUp={() => setVirtualDir('')}
+            onMouseLeave={() => setVirtualDir('')}
+            onTouchStart={() => setVirtualDir('DOWN')}
+            onTouchEnd={() => setVirtualDir('')}
+          >▼</button>
+        </div>
+      )}
+
+      {/* Onboarding Tutorial Info */}
+      {gameState === STATES.PLAYING_3D && showTutorial && (
+        <div className="hud-objectives crt-flicker hud-onboarding-panel" style={{ top: '220px', borderColor: 'var(--cod-primary)', width: '280px', pointerEvents: 'auto', zIndex: 1000 }}>
+          <div className="hud-objectives-header" style={{ color: 'var(--cod-primary)' }}>
+            <span>TACTICAL INSTRUCTIONS</span>
+            <button 
+              onClick={() => setShowTutorial(false)}
+              style={{ background: 'none', border: 'none', color: 'var(--cod-danger)', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold' }}
+            >
+              [X] CLOSE
+            </button>
+          </div>
+          <div className="objectives-list" style={{ fontSize: '0.55rem', color: 'var(--cod-text)', lineHeight: '1.5' }}>
+            <div style={{ marginBottom: '6px' }}>▪ USE <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> OR <kbd>ARROWS</kbd> TO MOVE</div>
+            <div style={{ marginBottom: '6px' }}>▪ POINT & CLICK ANYWHERE TO FIRE WEAPON</div>
+            <div style={{ marginBottom: '6px' }}>▪ APPROACH TERMINAL PEDESTALS TO INTERACT</div>
+            <div style={{ marginBottom: '6px' }}>▪ PRESS <kbd>E</kbd> OR CLICK PROMPT TO ACCESS TERMINAL</div>
+            <div>▪ PRESS <kbd>N</kbd> FOR NIGHT VISION / <kbd>M</kbd> FOR AUDIO</div>
+          </div>
+        </div>
+      )}
+
+      {/* HUD — visible in menu, playing 3D, briefing & section states */}
       {gameState !== STATES.BOOT && (
         <HUD
           currentSection={currentSection}

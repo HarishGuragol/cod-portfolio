@@ -110,24 +110,63 @@ export default function HUD({
       </button>
       
       {/* HUD Active Objectives Checklist Panel (Left Side) */}
-      {currentSection && objectives.length > 0 && (
+      {currentSection ? (
+        objectives.length > 0 && (
+          <div className="hud-objectives crt-flicker">
+            <div className="hud-objectives-header">
+              <span>OBJECTIVES</span>
+              <span>
+                {objectives.filter(obj => completedObjectives.includes(obj.id)).length} / {objectives.length}
+              </span>
+            </div>
+            <div className="objectives-list">
+              {objectives.map(obj => {
+                const isDone = completedObjectives.includes(obj.id);
+                return (
+                  <div key={obj.id} className={`objective-item ${isDone ? 'completed' : ''}`}>
+                    <span className="objective-checkbox" />
+                    <span>{obj.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )
+      ) : (
         <div className="hud-objectives crt-flicker">
           <div className="hud-objectives-header">
-            <span>OBJECTIVES</span>
+            <span>BUNKER DEPLOYMENT</span>
             <span>
-              {objectives.filter(obj => completedObjectives.includes(obj.id)).length} / {objectives.length}
+              {[
+                completedObjectives.includes('campaign_read_dossier') || completedObjectives.includes('campaign_explore_timeline'),
+                completedObjectives.includes('multiplayer_view_projects'),
+                completedObjectives.includes('armory_equip_weapon'),
+                completedObjectives.includes('barracks_inspect_certs'),
+                completedObjectives.includes('comms_secure_uplink')
+              ].filter(Boolean).length} / 5
             </span>
           </div>
           <div className="objectives-list">
-            {objectives.map(obj => {
-              const isDone = completedObjectives.includes(obj.id);
-              return (
-                <div key={obj.id} className={`objective-item ${isDone ? 'completed' : ''}`}>
-                  <span className="objective-checkbox" />
-                  <span>{obj.text}</span>
-                </div>
-              );
-            })}
+            <div className={`objective-item ${completedObjectives.includes('campaign_read_dossier') || completedObjectives.includes('campaign_explore_timeline') ? 'completed' : ''}`}>
+              <span className="objective-checkbox" />
+              <span>ACCESS CAMPAIGN TERMINAL</span>
+            </div>
+            <div className={`objective-item ${completedObjectives.includes('multiplayer_view_projects') ? 'completed' : ''}`}>
+              <span className="objective-checkbox" />
+              <span>ACCESS MULTIPLAYER TERMINAL</span>
+            </div>
+            <div className={`objective-item ${completedObjectives.includes('armory_equip_weapon') ? 'completed' : ''}`}>
+              <span className="objective-checkbox" />
+              <span>ACCESS ARMORY TERMINAL</span>
+            </div>
+            <div className={`objective-item ${completedObjectives.includes('barracks_inspect_certs') ? 'completed' : ''}`}>
+              <span className="objective-checkbox" />
+              <span>ACCESS BARRACKS TERMINAL</span>
+            </div>
+            <div className={`objective-item ${completedObjectives.includes('comms_secure_uplink') ? 'completed' : ''}`}>
+              <span className="objective-checkbox" />
+              <span>ACCESS COMMS TERMINAL</span>
+            </div>
           </div>
         </div>
       )}
