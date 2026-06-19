@@ -619,7 +619,7 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
   const soldierRef = useRef();
   
   // Starting position: far back on the road at Z = 45 looking towards the bunker
-  const playerX = useRef(0);
+  const playerX = useRef(2.0); // Spawns in the right lane to avoid spawning inside center Jersey barrier
   const playerY = useRef(-1.9); // Ground height
   const playerZ = useRef(45);
   
@@ -640,8 +640,8 @@ function CameraController({ is3DMode, virtualDir, onNearTerminal, onUpdateWalkin
   // Set initial follow camera coordinates
   useEffect(() => {
     if (is3DMode && camera && controlsRef.current) {
-      camera.position.set(0, 1.8, 49.5);
-      controlsRef.current.target.set(0, -1.9, 45);
+      camera.position.set(2.0, 1.8, 49.5);
+      controlsRef.current.target.set(2.0, -1.9, 45);
       controlsRef.current.update();
     }
   }, [is3DMode, camera, controlsRef]);
